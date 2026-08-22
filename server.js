@@ -36,6 +36,21 @@ async function initDb(){
     mime_type TEXT,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
   )`);
+  await pool.query(`CREATE TABLE IF NOT EXISTS hero_slides (
+    slide_no INTEGER PRIMARY KEY CHECK (slide_no BETWEEN 1 AND 4),
+    kicker TEXT NOT NULL DEFAULT '',
+    title TEXT NOT NULL DEFAULT '',
+    subtitle TEXT NOT NULL DEFAULT '',
+    primary_button_text TEXT NOT NULL DEFAULT 'Explore Menu',
+    primary_button_link TEXT NOT NULL DEFAULT '#menu',
+    secondary_button_text TEXT NOT NULL DEFAULT 'Order Now',
+    secondary_button_link TEXT NOT NULL DEFAULT '#order',
+    visible BOOLEAN NOT NULL DEFAULT TRUE,
+    sort_order INTEGER NOT NULL DEFAULT 1,
+    image_data BYTEA,
+    mime_type TEXT,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  )`);
 }
 
 function makeToken(){return crypto.createHmac('sha256',ADMIN_PASSWORD).update('restaurant-admin').digest('hex');}
@@ -91,11 +106,7 @@ app.get('/api/bbq-slides',async(req,res)=>{
   if(!process.env.DATABASE_URL) return res.json([]);
   const {rows}=await pool.query(`SELECT slide_no,title,caption,button_text,button_link,visible,sort_order,updated_at,(image_data IS NOT NULL) AS has_image
     FROM bbq_slides ORDER BY sort_order ASC, slide_no ASC`);
-  res.json(rows.map(r=>({
-    slideNo:r.slide_no,title:r.title,caption:r.caption,buttonText:r.button_text,buttonLink:r.button_link,
-    visible:r.visible,sortOrder:r.sort_order,
-    imageUrl:r.has_image?`/api/bbq-slide-image/${r.slide_no}?v=${new Date(r.updated_at).getTime()}`:null
-  })));
+  res.json(rows.map(r=>({slideNo:r.slide_no,title:r.title,caption:r.caption,buttonText:r.button_text,buttonLink:r.button_link,visible:r.visible,sortOrder:r.sort_order,imageUrl:r.has_image?`/api/bbq-slide-image/${r.slide_no}?v=${new Date(r.updated_at).getTime()}`:null})));
 });
 
 app.get('/api/bbq-slide-image/:slideNo',async(req,res)=>{
@@ -121,15 +132,11 @@ app.post('/api/admin/bbq-slide/:slideNo',requireAdmin,upload.single('image'),asy
   const sortOrder=Math.min(4,Math.max(1,Number(req.body.sortOrder)||n));
   if(req.file){
     await pool.query(`INSERT INTO bbq_slides(slide_no,title,caption,button_text,button_link,visible,sort_order,image_data,mime_type,updated_at)
-      VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,NOW())
-      ON CONFLICT(slide_no) DO UPDATE SET title=EXCLUDED.title,caption=EXCLUDED.caption,button_text=EXCLUDED.button_text,
-      button_link=EXCLUDED.button_link,visible=EXCLUDED.visible,sort_order=EXCLUDED.sort_order,image_data=EXCLUDED.image_data,mime_type=EXCLUDED.mime_type,updated_at=NOW()`,
+      VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,NOW()) ON CONFLICT(slide_no) DO UPDATE SET title=EXCLUDED.title,caption=EXCLUDED.caption,button_text=EXCLUDED.button_text,button_link=EXCLUDED.button_link,visible=EXCLUDED.visible,sort_order=EXCLUDED.sort_order,image_data=EXCLUDED.image_data,mime_type=EXCLUDED.mime_type,updated_at=NOW()`,
       [n,title,caption,buttonText,buttonLink,visible,sortOrder,req.file.buffer,req.file.mimetype]);
   }else{
     await pool.query(`INSERT INTO bbq_slides(slide_no,title,caption,button_text,button_link,visible,sort_order,updated_at)
-      VALUES($1,$2,$3,$4,$5,$6,$7,NOW())
-      ON CONFLICT(slide_no) DO UPDATE SET title=EXCLUDED.title,caption=EXCLUDED.caption,button_text=EXCLUDED.button_text,
-      button_link=EXCLUDED.button_link,visible=EXCLUDED.visible,sort_order=EXCLUDED.sort_order,updated_at=NOW()`,
+      VALUES($1,$2,$3,$4,$5,$6,$7,NOW()) ON CONFLICT(slide_no) DO UPDATE SET title=EXCLUDED.title,caption=EXCLUDED.caption,button_text=EXCLUDED.button_text,button_link=EXCLUDED.button_link,visible=EXCLUDED.visible,sort_order=EXCLUDED.sort_order,updated_at=NOW()`,
       [n,title,caption,buttonText,buttonLink,visible,sortOrder]);
   }
   res.json({ok:true,slideNo:n,imageUrl:req.file?`/api/bbq-slide-image/${n}?v=${Date.now()}`:undefined});
@@ -142,12 +149,70 @@ app.delete('/api/admin/bbq-slide-image/:slideNo',requireAdmin,async(req,res)=>{
   res.json({ok:true});
 });
 
+app.get('/api/hero-slides',async(req,res)=>{
+  if(!process.env.DATABASE_URL) return res.json([]);
+  const {rows}=await pool.query(`SELECT slide_no,kicker,title,subtitle,primary_button_text,primary_button_link,secondary_button_text,secondary_button_link,visible,sort_order,updated_at,(image_data IS NOT NULL) AS has_image
+    FROM hero_slides ORDER BY sort_order ASC, slide_no ASC`);
+  res.json(rows.map(r=>({
+    slideNo:r.slide_no,kicker:r.kicker,title:r.title,subtitle:r.subtitle,
+    primaryButtonText:r.primary_button_text,primaryButtonLink:r.primary_button_link,
+    secondaryButtonText:r.secondary_button_text,secondaryButtonLink:r.secondary_button_link,
+    visible:r.visible,sortOrder:r.sort_order,
+    imageUrl:r.has_image?`/api/hero-slide-image/${r.slide_no}?v=${new Date(r.updated_at).getTime()}`:null
+  })));
+});
+
+app.get('/api/hero-slide-image/:slideNo',async(req,res)=>{
+  const n=slideNo(req.params.slideNo);
+  if(!n||!process.env.DATABASE_URL) return res.sendStatus(404);
+  const {rows}=await pool.query('SELECT image_data,mime_type FROM hero_slides WHERE slide_no=$1',[n]);
+  if(!rows.length||!rows[0].image_data) return res.sendStatus(404);
+  res.set('Content-Type',rows[0].mime_type||'image/jpeg');
+  res.set('Cache-Control','public, max-age=300');
+  res.send(rows[0].image_data);
+});
+
+app.post('/api/admin/hero-slide/:slideNo',requireAdmin,upload.single('image'),async(req,res)=>{
+  const n=slideNo(req.params.slideNo);
+  if(!n) return res.status(400).json({error:'Slide must be 1 to 4'});
+  if(!process.env.DATABASE_URL) return res.status(500).json({error:'Database is not configured'});
+  if(req.file&&!req.file.mimetype.startsWith('image/')) return res.status(400).json({error:'File must be an image'});
+  const kicker=String(req.body.kicker||'').slice(0,120);
+  const title=String(req.body.title||'').slice(0,140);
+  const subtitle=String(req.body.subtitle||'').slice(0,300);
+  const primaryButtonText=String(req.body.primaryButtonText||'Explore Menu').slice(0,80);
+  const primaryButtonLink=String(req.body.primaryButtonLink||'#menu').slice(0,500);
+  const secondaryButtonText=String(req.body.secondaryButtonText||'Order Now').slice(0,80);
+  const secondaryButtonLink=String(req.body.secondaryButtonLink||'#order').slice(0,500);
+  const visible=String(req.body.visible)!=='false';
+  const sortOrder=Math.min(4,Math.max(1,Number(req.body.sortOrder)||n));
+  const base=[n,kicker,title,subtitle,primaryButtonText,primaryButtonLink,secondaryButtonText,secondaryButtonLink,visible,sortOrder];
+  if(req.file){
+    await pool.query(`INSERT INTO hero_slides(slide_no,kicker,title,subtitle,primary_button_text,primary_button_link,secondary_button_text,secondary_button_link,visible,sort_order,image_data,mime_type,updated_at)
+      VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,NOW())
+      ON CONFLICT(slide_no) DO UPDATE SET kicker=EXCLUDED.kicker,title=EXCLUDED.title,subtitle=EXCLUDED.subtitle,primary_button_text=EXCLUDED.primary_button_text,primary_button_link=EXCLUDED.primary_button_link,secondary_button_text=EXCLUDED.secondary_button_text,secondary_button_link=EXCLUDED.secondary_button_link,visible=EXCLUDED.visible,sort_order=EXCLUDED.sort_order,image_data=EXCLUDED.image_data,mime_type=EXCLUDED.mime_type,updated_at=NOW()`,
+      [...base,req.file.buffer,req.file.mimetype]);
+  }else{
+    await pool.query(`INSERT INTO hero_slides(slide_no,kicker,title,subtitle,primary_button_text,primary_button_link,secondary_button_text,secondary_button_link,visible,sort_order,updated_at)
+      VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,NOW())
+      ON CONFLICT(slide_no) DO UPDATE SET kicker=EXCLUDED.kicker,title=EXCLUDED.title,subtitle=EXCLUDED.subtitle,primary_button_text=EXCLUDED.primary_button_text,primary_button_link=EXCLUDED.primary_button_link,secondary_button_text=EXCLUDED.secondary_button_text,secondary_button_link=EXCLUDED.secondary_button_link,visible=EXCLUDED.visible,sort_order=EXCLUDED.sort_order,updated_at=NOW()`,base);
+  }
+  res.json({ok:true,slideNo:n,imageUrl:req.file?`/api/hero-slide-image/${n}?v=${Date.now()}`:undefined});
+});
+
+app.delete('/api/admin/hero-slide-image/:slideNo',requireAdmin,async(req,res)=>{
+  const n=slideNo(req.params.slideNo);
+  if(!n) return res.status(400).json({error:'Slide must be 1 to 4'});
+  if(process.env.DATABASE_URL) await pool.query('UPDATE hero_slides SET image_data=NULL,mime_type=NULL,updated_at=NOW() WHERE slide_no=$1',[n]);
+  res.json({ok:true});
+});
+
 app.get('/admin',(req,res)=>res.sendFile(path.join(__dirname,'public','admin.html')));
 
 function sendHome(res){
   const file=path.join(__dirname,'public','index.html');
   let html=fs.readFileSync(file,'utf8');
-  html=html.replace('</body>','<script src="/slider-live.js"></script></body>');
+  html=html.replace('</body>','<script src="/slider-live.js"></script><script src="/hero-live.js"></script></body>');
   res.type('html').send(html);
 }
 app.get('/',(req,res)=>sendHome(res));
