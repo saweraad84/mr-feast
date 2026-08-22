@@ -9,6 +9,7 @@ const port=process.env.PORT||3000;
 const pool=new Pool({connectionString:process.env.DATABASE_URL,ssl:process.env.DATABASE_URL?{rejectUnauthorized:false}:false});
 const upload=multer({storage:multer.memoryStorage(),limits:{fileSize:5*1024*1024}});
 const ADMIN_PASSWORD=process.env.ADMIN_PASSWORD||'MrFeast2026!';
+const SITE_NAME=process.env.SITE_NAME||'Mr. Feast';
 
 app.use(express.json({limit:'1mb'}));
 app.use(express.urlencoded({extended:true}));
@@ -24,19 +25,20 @@ async function initDb(){
   )`);
 }
 
-function makeToken(){return crypto.createHmac('sha256',ADMIN_PASSWORD).update('mr-feast-admin').digest('hex');}
+function makeToken(){return crypto.createHmac('sha256',ADMIN_PASSWORD).update('restaurant-admin').digest('hex');}
 function isAdmin(req){
   const cookie=req.headers.cookie||'';
-  return cookie.split(';').map(x=>x.trim()).includes(`mrfeast_admin=${makeToken()}`);
+  return cookie.split(';').map(x=>x.trim()).includes(`restaurant_admin=${makeToken()}`);
 }
 function requireAdmin(req,res,next){if(!isAdmin(req)) return res.status(401).json({error:'Unauthorized'}); next();}
 
+app.get('/api/site-config',(req,res)=>res.json({siteName:SITE_NAME}));
 app.post('/api/admin/login',(req,res)=>{
   if(req.body.password!==ADMIN_PASSWORD) return res.status(401).json({error:'Wrong password'});
-  res.setHeader('Set-Cookie',`mrfeast_admin=${makeToken()}; HttpOnly; SameSite=Lax; Path=/; Max-Age=86400`);
+  res.setHeader('Set-Cookie',`restaurant_admin=${makeToken()}; HttpOnly; SameSite=Lax; Path=/; Max-Age=86400`);
   res.json({ok:true});
 });
-app.post('/api/admin/logout',(req,res)=>{res.setHeader('Set-Cookie','mrfeast_admin=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0');res.json({ok:true});});
+app.post('/api/admin/logout',(req,res)=>{res.setHeader('Set-Cookie','restaurant_admin=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0');res.json({ok:true});});
 app.get('/api/admin/status',(req,res)=>res.json({authenticated:isAdmin(req)}));
 
 app.get('/api/menu-images',async(req,res)=>{
@@ -74,4 +76,4 @@ app.delete('/api/admin/image/:name',requireAdmin,async(req,res)=>{
 app.get('/admin',(req,res)=>res.sendFile(path.join(__dirname,'public','admin.html')));
 app.get('*',(req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
 
-initDb().then(()=>app.listen(port,()=>console.log(`Mr. Feast running on ${port}`))).catch(err=>{console.error(err);process.exit(1)});
+initDb().then(()=>app.listen(port,()=>console.log(`${SITE_NAME} running on ${port}`))).catch(err=>{console.error(err);process.exit(1)});
