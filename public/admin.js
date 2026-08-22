@@ -1,6 +1,7 @@
 const items=['Classic Burger','Zinger Burger','Chicken Pizza','Chicken Shawarma','Fries','Club Sandwich','Chicken Tikka','Malai Boti','Seekh Kebab','Chicken Wings','BBQ Platters','Gulab Jamun','Rasmalai','Kheer','Brownies','Ice Cream','Chocolate Lava Cake','Cheesecake','Waffles','Sundaes'];
 const item=document.getElementById('item');items.forEach(x=>item.add(new Option(x,x)));
 const loginCard=document.getElementById('loginCard'),manager=document.getElementById('manager'),logout=document.getElementById('logout');
+fetch('/api/site-config').then(r=>r.json()).then(x=>{const name=x.siteName||'Restaurant';document.getElementById('brand').textContent=name.toUpperCase()+' ADMIN';document.title=name+' Admin';}).catch(()=>{});
 function showAdmin(ok){loginCard.style.display=ok?'none':'block';manager.style.display=ok?'block':'none';logout.style.display=ok?'block':'none'}
 fetch('/api/admin/status').then(r=>r.json()).then(x=>showAdmin(x.authenticated));
 document.getElementById('login').onclick=async()=>{const r=await fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:document.getElementById('password').value})});const j=await r.json();if(r.ok){showAdmin(true);document.getElementById('loginStatus').textContent=''}else document.getElementById('loginStatus').textContent=j.error||'Login failed'};
