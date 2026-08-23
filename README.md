@@ -1,6 +1,6 @@
-# Mr. Feast
+# Mehfil-e-Zaika
 
-Premium restaurant website for Fast Food, BBQ, Sweets and Desserts.
+Production website for Mehfil-e-Zaika — BBQ, Fast Food, Sweets and Desserts.
 
 ## Run locally
 
@@ -11,4 +11,8 @@ npm start
 
 Railway uses the `PORT` environment variable automatically.
 
-Before launch, replace the placeholder WhatsApp number, restaurant address and Google Maps link with the real Mr. Feast details.
+Canonical local project folder on the owner's Windows PC:
+
+`F:\Projects\Websites\mehfil-e-zaika`
+
+This branch is reserved for Mehfil-e-Zaika. Do not mix Awais BBQ or Mr. Feast project files into this branch.
