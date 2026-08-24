@@ -28,6 +28,12 @@ async function initDb(){
 
 function passwordMatches(submitted){
   try{
+    const supplied=Buffer.from(String(submitted||''));
+    const envPassword=String(process.env.ADMIN_PASSWORD||'');
+    if(envPassword){
+      const expected=Buffer.from(envPassword);
+      return supplied.length===expected.length && crypto.timingSafeEqual(supplied,expected);
+    }
     const candidate=crypto.scryptSync(String(submitted||''),ADMIN_SALT,64,{N:16384,r:8,p:1});
     const expected=Buffer.from(ADMIN_HASH,'hex');
     return candidate.length===expected.length && crypto.timingSafeEqual(candidate,expected);
