@@ -19,5 +19,8 @@ const menu=[
 ['Cheesecake','Desserts','Rs. 500','Silky cheesecake on a buttery biscuit base.','https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=900&q=85'],
 ['Waffles','Desserts','Rs. 450','Golden crisp waffles with cream and chocolate.','https://images.unsplash.com/photo-1562376552-7684c019e1cb?auto=format&fit=crop&w=900&q=85'],
 ['Sundaes','Desserts','Rs. 350','Vanilla ice cream, chocolate sauce and crunchy toppings.','https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=900&q=85']];
-const grid=document.getElementById('menuGrid');grid.innerHTML=menu.map(x=>`<article class="food"><img src="${x[4]}" alt="${x[0]}"><div class="body"><div class="tag">${x[1]}</div><h3>${x[0]}</h3><p>${x[3]}</p><div class="price">${x[2]}</div></div></article>`).join('');
+const grid=document.getElementById('menuGrid');
+function renderMenu(){grid.innerHTML=menu.map(x=>`<article class="food"><img src="${x[4]}" alt="${x[0]}" loading="lazy"><div class="body"><div class="tag">${x[1]}</div><h3>${x[0]}</h3><p>${x[3]}</p><div class="price">${x[2]}</div></div></article>`).join('')}
+renderMenu();
+fetch('/api/menu-images').then(r=>r.ok?r.json():{}).then(overrides=>{menu.forEach(x=>{if(overrides[x[0]])x[4]=overrides[x[0]]});renderMenu()}).catch(()=>{});
 const chat=document.getElementById('chat');document.getElementById('chatBtn').onclick=()=>chat.classList.add('open');document.getElementById('close').onclick=()=>chat.classList.remove('open');document.querySelectorAll('.quick button').forEach(b=>b.onclick=()=>{const q=encodeURIComponent(`Assalam-o-Alaikum Mr. Feast, I want to ask about ${b.textContent.replace(/^\S+\s/,'')}.`);window.open(`https://wa.me/923000000000?text=${q}`,'_blank')});
