@@ -21,10 +21,10 @@ const menu=[
 ['Sundaes','Desserts','Rs. 350','Vanilla ice cream, chocolate sauce and crunchy toppings.','https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=900&q=85']];
 
 const deals=[
-['Mr. Feast Deal 01','Rs. 899','2 Zinger Burgers, Large Fries aur 2 Drinks'],
-['BBQ Feast Deal','Rs. 1,499','Chicken Tikka, Malai Boti, Seekh Kebab, 2 Naan aur Salad'],
-['Family Feast','Rs. 2,799','4 Burgers, 2 Loaded Fries, 12 Wings aur 4 Drinks'],
-['Sweet Feast','Rs. 999','Brownie, 2 Ice Creams, Waffles aur Chocolate Lava Cake']
+['Mr. Feast Deal 01','Rs. 899','2 Zinger Burgers, Large Fries and 2 Drinks'],
+['BBQ Feast Deal','Rs. 1,499','Chicken Tikka, Malai Boti, Seekh Kebab, 2 Naan and Salad'],
+['Family Feast','Rs. 2,799','4 Burgers, 2 Loaded Fries, 12 Wings and 4 Drinks'],
+['Sweet Feast','Rs. 999','Brownie, 2 Ice Creams, Waffles and Chocolate Lava Cake']
 ];
 
 const grid=document.getElementById('menuGrid');
@@ -60,10 +60,10 @@ function addMessage(text,who='bot'){
 }
 
 chatBody.innerHTML='';
-addMessage('Assalam-o-Alaikum! Main Mr. Feast Assistant hoon. Aap type bhi kar sakte hain aur mic daba kar mujh se baat bhi kar sakte hain.');
+addMessage('Hello! I am the Mr. Feast Assistant. You can type your question or tap the microphone and talk to me.');
 const quick=document.createElement('div');
 quick.className='quick';
-['Burger ki price?','BBQ for 2','Special deals','Desserts'].forEach(q=>{const b=document.createElement('button');b.textContent=q;b.onclick=()=>handleQuestion(q);quick.appendChild(b)});
+['Burger price?','BBQ for 2','Special deals','Desserts'].forEach(q=>{const b=document.createElement('button');b.textContent=q;b.onclick=()=>handleQuestion(q);quick.appendChild(b)});
 chatBody.appendChild(quick);
 
 chatInput.className='voicecontrols';
@@ -71,29 +71,29 @@ chatInput.innerHTML='<input id="agentText" aria-label="Ask Mr. Feast Assistant" 
 const textBox=document.getElementById('agentText');
 const sendBtn=document.getElementById('agentSend');
 const micBtn=document.getElementById('agentMic');
-const hint=document.createElement('div');hint.className='voicehint';hint.textContent='Mic par click karein, sawal bolain, assistant jawab bol kar dega.';chat.appendChild(hint);
+const hint=document.createElement('div');hint.className='voicehint';hint.textContent='Tap the microphone, ask your question, and the assistant will reply aloud.';chat.appendChild(hint);
 
 const aliases={
-'classic burger':['classic burger','classic','کلاسک برگر'],
-'zinger burger':['zinger','zinger burger','زنگر','زنگر برگر'],
-'chicken pizza':['chicken pizza','pizza','پیزا','چکن پیزا'],
-'chicken shawarma':['shawarma','شاورما'],
-'fries':['fries','فرائز'],
-'club sandwich':['sandwich','club sandwich','سینڈوچ','کلب سینڈوچ'],
-'chicken tikka':['tikka','chicken tikka','تکہ','چکن تکہ'],
-'malai boti':['malai','malai boti','ملائی بوٹی','ملائی'],
-'seekh kebab':['seekh','kebab','seekh kebab','سیخ کباب','کباب'],
-'chicken wings':['wings','chicken wings','ونگز','چکن ونگز'],
-'bbq platters':['platter','bbq platter','bbq for 2','پلیٹر','باربی کیو پلیٹر'],
-'gulab jamun':['gulab jamun','گلاب جامن'],
-'rasmalai':['rasmalai','ras malai','رس ملائی'],
-'kheer':['kheer','کھیر'],
-'brownies':['brownie','brownies','براونی'],
-'ice cream':['ice cream','آئس کریم'],
-'chocolate lava cake':['lava cake','chocolate lava','chocolate lava cake','لاوا کیک','چاکلیٹ لاوا کیک'],
-'cheesecake':['cheesecake','cheese cake','چیز کیک'],
-'waffles':['waffle','waffles','وافل'],
-'sundaes':['sundae','sundaes','سنڈے']
+'classic burger':['classic burger','classic'],
+'zinger burger':['zinger','zinger burger'],
+'chicken pizza':['chicken pizza','pizza'],
+'chicken shawarma':['shawarma'],
+'fries':['fries'],
+'club sandwich':['sandwich','club sandwich'],
+'chicken tikka':['tikka','chicken tikka'],
+'malai boti':['malai','malai boti'],
+'seekh kebab':['seekh','kebab','seekh kebab'],
+'chicken wings':['wings','chicken wings'],
+'bbq platters':['platter','bbq platter','bbq for 2'],
+'gulab jamun':['gulab jamun'],
+'rasmalai':['rasmalai','ras malai'],
+'kheer':['kheer'],
+'brownies':['brownie','brownies'],
+'ice cream':['ice cream'],
+'chocolate lava cake':['lava cake','chocolate lava','chocolate lava cake'],
+'cheesecake':['cheesecake','cheese cake'],
+'waffles':['waffle','waffles'],
+'sundaes':['sundae','sundaes']
 };
 
 function findMenuItem(q){
@@ -107,19 +107,19 @@ function findMenuItem(q){
 function answerFor(raw){
   const q=String(raw||'').toLowerCase().trim();
   const item=findMenuItem(q);
-  if(item) return `${item[0]} ki price ${item[2]} hai. ${item[3]}`;
-  if(/deal|offers|special|ڈیل|آفر/.test(q)) return `Hamare sample deals: ${deals.map(d=>`${d[0]} ${d[1]}`).join(', ')}. Kisi deal ki detail chahiye to naam bol dein.`;
-  if(/menu|مینو|kya hai|what do you have/.test(q)) return 'Mr. Feast menu mein Fast Food, BBQ, Sweets aur Desserts hain. Aap burger, Chicken Pizza, shawarma, tikka, Malai Boti, kebab, sweets ya dessert ka naam bol kar price pooch sakte hain.';
-  if(/dessert|sweet|میٹھا|ڈیزرٹ|سویٹ/.test(q)) return 'Desserts mein Ice Cream Rs. 250, Chocolate Lava Cake Rs. 450, Cheesecake Rs. 500, Waffles Rs. 450 aur Sundaes Rs. 350 hain. Sweets mein Gulab Jamun, Rasmalai, Kheer aur Brownies hain.';
-  if(/bbq|barbecue|باربی/.test(q)) return 'BBQ menu mein Chicken Tikka Rs. 450, Malai Boti Rs. 600, Seekh Kebab Rs. 550, Chicken Wings Rs. 550 aur BBQ Platter Rs. 1,350 hai.';
-  if(/price|rate|kitne|قیمت|ریٹ|کتنے/.test(q)) return 'Jis item ki price chahiye us ka naam bol dein, jaise Zinger Burger, Chicken Pizza ya Malai Boti.';
-  if(/best|recommend|popular|بہترین|مشورہ/.test(q)) return 'Confirmed sales data abhi available nahi hai, is liye main fake best-seller claim nahi karunga. Aap Zinger Burger, Chicken Pizza, BBQ Platter ya Chocolate Lava Cake dekh sakte hain.';
-  if(/address|location|where|لوکیشن|ایڈریس|کہاں/.test(q)) return 'Mr. Feast ka exact confirmed address abhi website data mein add nahi hua. Address confirm hote hi main yahan bata sakunga.';
-  if(/whatsapp|phone|number|call|واٹس ایپ|فون|نمبر/.test(q)) return 'Mr. Feast ka confirmed WhatsApp ya phone number abhi configure nahi hua, is liye main koi number invent nahi karunga.';
-  if(/time|timing|hours|open|close|ٹائم|اوقات|کھلا/.test(q)) return 'Mr. Feast ke confirmed opening hours abhi configure nahi hue. Main unconfirmed timing share nahi karunga.';
-  if(/order|آرڈر/.test(q)) return 'Main menu aur prices mein help kar sakta hoon. Online order ko WhatsApp se final karne ke liye confirmed restaurant number abhi add hona baqi hai.';
-  if(/salam|assalam|hello|hi|ہیلو|السلام|سلام/.test(q)) return 'Wa Alaikum Assalam! Mr. Feast mein aap ko kis cheez ki help chahiye—menu, price, BBQ, deals ya desserts?';
-  return 'Main Mr. Feast ke menu, prices, BBQ, deals aur desserts ke bare mein help kar sakta hoon. Item ka naam bol kar poochain, jaise “Zinger Burger ki price kya hai?”';
+  if(item) return `${item[0]} costs ${item[2]}. ${item[3]}`;
+  if(/deal|offers|special/.test(q)) return `Our current sample deals are: ${deals.map(d=>`${d[0]} for ${d[1]}`).join(', ')}. Ask me for the details of any deal.`;
+  if(/menu|what do you have|what is available/.test(q)) return 'Mr. Feast serves Fast Food, BBQ, Sweets and Desserts. You can ask me about burgers, Chicken Pizza, shawarma, Chicken Tikka, Malai Boti, kebabs, sweets or desserts.';
+  if(/dessert|sweet/.test(q)) return 'Desserts include Ice Cream for Rs. 250, Chocolate Lava Cake for Rs. 450, Cheesecake for Rs. 500, Waffles for Rs. 450 and Sundaes for Rs. 350. Sweets include Gulab Jamun, Rasmalai, Kheer and Brownies.';
+  if(/bbq|barbecue/.test(q)) return 'Our BBQ menu includes Chicken Tikka for Rs. 450, Malai Boti for Rs. 600, Seekh Kebab for Rs. 550, Chicken Wings for Rs. 550 and a BBQ Platter for Rs. 1,350.';
+  if(/price|rate|cost|how much/.test(q)) return 'Tell me the name of the item you want a price for, such as Zinger Burger, Chicken Pizza or Malai Boti.';
+  if(/best|recommend|popular/.test(q)) return 'Confirmed sales data is not available yet, so I will not make up a best-seller claim. You may want to try the Zinger Burger, Chicken Pizza, BBQ Platter or Chocolate Lava Cake.';
+  if(/address|location|where/.test(q)) return 'The exact confirmed Mr. Feast address has not been added to the website yet. Once it is confirmed, I will be able to provide it here.';
+  if(/whatsapp|phone|number|call/.test(q)) return 'A confirmed Mr. Feast WhatsApp or phone number has not been configured yet, so I will not provide an unverified number.';
+  if(/time|timing|hours|open|close/.test(q)) return 'Confirmed Mr. Feast opening hours have not been configured yet, so I will not provide unverified timings.';
+  if(/order/.test(q)) return 'I can help you with the menu and prices. A confirmed restaurant WhatsApp number still needs to be added before I can send an online order there.';
+  if(/hello|hi|hey|salam|assalam/.test(q)) return 'Hello! How can I help you with Mr. Feast today? You can ask about the menu, prices, BBQ, deals or desserts.';
+  return 'I can help with the Mr. Feast menu, prices, BBQ, deals and desserts. Ask me about an item, for example: “How much is a Zinger Burger?”';
 }
 
 function speak(text){
@@ -127,9 +127,9 @@ function speak(text){
   window.speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(text);
   const voices=window.speechSynthesis.getVoices();
-  const v=voices.find(x=>/^ur(-|_)?PK/i.test(x.lang))||voices.find(x=>/^en(-|_)?PK/i.test(x.lang))||voices.find(x=>/^en/i.test(x.lang));
+  const v=voices.find(x=>/^en(-|_)?PK/i.test(x.lang))||voices.find(x=>/^en(-|_)?GB/i.test(x.lang))||voices.find(x=>/^en(-|_)?US/i.test(x.lang))||voices.find(x=>/^en/i.test(x.lang));
   if(v)u.voice=v;
-  u.lang=v?.lang||'en-PK';u.rate=.95;u.pitch=1;
+  u.lang=v?.lang||'en-US';u.rate=.95;u.pitch=1;
   window.speechSynthesis.speak(u);
 }
 
@@ -146,12 +146,12 @@ textBox.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();se
 const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
 if(SpeechRecognition){
   const rec=new SpeechRecognition();
-  rec.lang='ur-PK';rec.interimResults=false;rec.continuous=false;
-  rec.onstart=()=>{micBtn.classList.add('listening');micBtn.textContent='●';hint.textContent='Sun raha hoon... bolain.'};
-  rec.onend=()=>{micBtn.classList.remove('listening');micBtn.textContent='🎙️';hint.textContent='Mic par click karein, sawal bolain, assistant jawab bol kar dega.'};
-  rec.onerror=e=>{hint.textContent=e.error==='not-allowed'?'Microphone permission allow karein.':'Voice sunne mein masla hua. Dobara try karein.'};
+  rec.lang='en-US';rec.interimResults=false;rec.continuous=false;
+  rec.onstart=()=>{micBtn.classList.add('listening');micBtn.textContent='●';hint.textContent='Listening... ask your question.'};
+  rec.onend=()=>{micBtn.classList.remove('listening');micBtn.textContent='🎙️';hint.textContent='Tap the microphone, ask your question, and the assistant will reply aloud.'};
+  rec.onerror=e=>{hint.textContent=e.error==='not-allowed'?'Please allow microphone permission.':'I could not hear you clearly. Please try again.'};
   rec.onresult=e=>{const text=e.results[0][0].transcript;textBox.value=text;handleQuestion(text);textBox.value=''};
   micBtn.onclick=()=>{try{window.speechSynthesis?.cancel();rec.start()}catch{}};
 }else{
-  micBtn.disabled=true;micBtn.title='Voice recognition is not supported in this browser';hint.textContent='Is browser mein voice recognition supported nahi. Text chat kaam karega.';
+  micBtn.disabled=true;micBtn.title='Voice recognition is not supported in this browser';hint.textContent='Voice recognition is not supported in this browser. Text chat will still work.';
 }
