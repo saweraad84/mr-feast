@@ -9,4 +9,40 @@ const render=()=>{const items=currentFilter==='All'?menu:menu.filter(x=>x[1]===c
 render();
 fetch('/api/menu-images').then(r=>r.ok?r.json():{}).then(overrides=>{menu.forEach(x=>{if(overrides[x[0]])x[4]=overrides[x[0]]});render()}).catch(()=>{});
 document.querySelectorAll('.filters button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.filters button').forEach(x=>x.classList.remove('active'));b.classList.add('active');currentFilter=b.dataset.filter;render()});
-const chat=document.getElementById('chat');document.getElementById('chatBtn').onclick=()=>chat.classList.add('open');document.getElementById('close').onclick=()=>chat.classList.remove('open');document.querySelectorAll('.quick button').forEach(b=>b.onclick=()=>{const q=encodeURIComponent(`Assalam-o-Alaikum Mr. Feast, I want to ask about ${b.textContent.replace(/^\S+\s/,'')}.`);window.open(`https://wa.me/923000000000?text=${q}`,'_blank')});
+const chat=document.getElementById('chat');document.getElementById('chatBtn').onclick=()=>chat.classList.add('open');document.getElementById('close').onclick=()=>chat.classList.remove('open');document.querySelectorAll('.quick button').forEach(b=>b.onclick=()=>{const q=encodeURIComponent(`Assalam-o-Alaikum Mehfil-e-Zaika, I want to ask about ${b.textContent.replace(/^\S+\s/,'')}.`);window.open(`https://wa.me/923000000000?text=${q}`,'_blank')});
+
+const dealSection=document.getElementById('deals');
+if(dealSection){
+  const dealStyle=document.createElement('style');
+  dealStyle.textContent=`
+    .deals{background:radial-gradient(circle at 88% 12%,rgba(201,164,92,.10),transparent 28%),#fff9ed}
+    .dealintro{max-width:650px;margin:12px 0 0;color:#766c64;font-size:14px;line-height:1.65}
+    .dealgrid.premium-deals{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin-top:38px;align-items:stretch}
+    .premium-deals .dealcard{position:relative;background:#fff;border:1px solid #dfcfaf;border-radius:12px;overflow:hidden;padding:0;display:flex;flex-direction:column;min-height:100%;box-shadow:0 10px 30px rgba(43,13,18,.05);transition:transform .28s ease,box-shadow .28s ease,border-color .28s ease}
+    .premium-deals .dealcard:hover{transform:translateY(-7px);box-shadow:0 20px 45px rgba(43,13,18,.13);border-color:#c9a45c}
+    .dealphoto{position:relative;height:178px;overflow:hidden;background:#2b0d12}
+    .dealphoto img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .45s ease}
+    .dealcard:hover .dealphoto img{transform:scale(1.055)}
+    .dealphoto:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(18,5,8,.05),rgba(18,5,8,.42))}
+    .dealbadge{position:absolute;left:14px;top:14px;z-index:2;background:#fff9ed;color:#541c24;border:1px solid rgba(201,164,92,.75);border-radius:999px;padding:7px 10px;font-size:9px;font-weight:900;letter-spacing:1.25px;box-shadow:0 5px 18px rgba(0,0,0,.12)}
+    .bestbadge{position:absolute;right:13px;top:13px;z-index:3;background:#c9a45c;color:#241719;border-radius:999px;padding:7px 10px;font-size:8px;font-weight:900;letter-spacing:1.1px}
+    .dealcontent{padding:22px 22px 20px;display:flex;flex-direction:column;flex:1}
+    .premium-deals .dealcard h3{font:700 25px/1.05 'Playfair Display',serif;margin:0 0 10px;color:#211919}
+    .premium-deals .dealcard p{font-size:12px;line-height:1.6;color:#766c64;min-height:58px;margin:0 0 19px}
+    .dealfooter{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:auto;padding-top:16px;border-top:1px solid #eee1c9}
+    .dealprice{font-size:22px!important;color:#541c24!important;font-weight:900!important;white-space:nowrap}
+    .dealcta{display:inline-flex;align-items:center;justify-content:center;background:#541c24;color:#fff;border:1px solid #8f4b55;border-radius:5px;padding:10px 12px;font-size:10px;font-weight:900;letter-spacing:.35px;transition:.25s}
+    .dealcta:hover{background:#2b0d12;border-color:#c9a45c}
+    .dealcard.featured{border-color:#c9a45c;box-shadow:0 14px 38px rgba(84,28,36,.12)}
+    @media(max-width:950px){.dealgrid.premium-deals{grid-template-columns:repeat(2,1fr)}.dealphoto{height:200px}}
+    @media(max-width:600px){.dealgrid.premium-deals{grid-template-columns:1fr}.dealphoto{height:220px}.dealcontent{padding:21px}.dealfooter{align-items:center}.dealprice{font-size:21px!important}}
+  `;
+  document.head.appendChild(dealStyle);
+  const deals=[
+    {n:'DEAL 01',name:'Mehfil Deal',items:'2 Zinger Burgers · Large Fries · 2 Drinks',price:'Rs. 899',img:'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1000&q=90',alt:'Zinger burger deal'},
+    {n:'DEAL 02',name:'BBQ Feast',items:'Tikka · Malai Boti · Seekh Kebab · 2 Naan · Salad',price:'Rs. 1,499',img:'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1000&q=90',alt:'BBQ feast platter',featured:true},
+    {n:'DEAL 03',name:'Family Mehfil',items:'4 Burgers · 2 Loaded Fries · 12 Wings · 4 Drinks',price:'Rs. 2,799',img:'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1000&q=90',alt:'Family food feast'},
+    {n:'DEAL 04',name:'Meetha Feast',items:'Brownie · 2 Ice Creams · Waffles · Lava Cake',price:'Rs. 999',img:'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=1000&q=90',alt:'Chocolate dessert feast'}
+  ];
+  dealSection.innerHTML=`<div class="kicker maroonText">SPECIAL DEALS</div><h2>Big flavor. <em>Behtar qeemat.</em></h2><p class="dealintro">Perfect combos for friends, families and late-night cravings — built to bring more taste to every mehfil.</p><div class="dealgrid premium-deals">${deals.map(d=>`<article class="dealcard${d.featured?' featured':''}"><div class="dealphoto"><img src="${d.img}" alt="${d.alt}" loading="lazy"><span class="dealbadge">${d.n}</span>${d.featured?'<span class="bestbadge">BEST VALUE</span>':''}</div><div class="dealcontent"><h3>${d.name}</h3><p>${d.items}</p><div class="dealfooter"><b class="dealprice">${d.price}</b><a class="dealcta" href="#order">Order Deal</a></div></div></article>`).join('')}</div>`;
+}
