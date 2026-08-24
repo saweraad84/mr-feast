@@ -15,4 +15,4 @@ Canonical local project folder on the owner's Windows PC:
 
 `F:\Projects\Websites\mehfil-e-zaika`
 
-This branch is reserved for Mehfil-e-Zaika. Do not mix Awais BBQ or Mr. Feast project files into this branch.
+This branch is reserved exclusively for Mehfil-e-Zaika. Do not mix files from any other restaurant project into this branch or the canonical local folder.
