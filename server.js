@@ -1,5 +1,6 @@
 const express=require('express');
 const path=require('path');
+const fs=require('fs');
 const crypto=require('crypto');
 const multer=require('multer');
 const {Pool}=require('pg');
@@ -14,6 +15,44 @@ const ADMIN_HASH='5b03e235cac49dff023ea38104f8bb1f3da8ce4850277632985bb79064bf7d
 
 app.use(express.json({limit:'1mb'}));
 app.use(express.urlencoded({extended:true}));
+
+app.get('/script.js',(req,res)=>{
+  const base=fs.readFileSync(path.join(__dirname,'public','script.js'),'utf8');
+  const voicePatch=`\n;(function(){
+    function scoreVoice(v){
+      const name=(v.name||'').toLowerCase();
+      const lang=(v.lang||'').toLowerCase();
+      let score=0;
+      if(/sonia|aria|jenny|samantha|serena|karen|ava|emma|libby|natasha|zira/.test(name)) score+=120;
+      if(/natural|online|google/.test(name)) score+=70;
+      if(lang.startsWith('en-gb')) score+=35;
+      else if(lang.startsWith('en-us')) score+=30;
+      else if(lang.startsWith('en')) score+=15;
+      return score;
+    }
+    function chooseVoice(){
+      const voices=window.speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang||''));
+      return voices.sort((a,b)=>scoreVoice(b)-scoreVoice(a))[0]||null;
+    }
+    window.speak=function(text){
+      if(!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const spoken=String(text||'')
+        .replace(/Rs\\.\\s*([0-9,]+)/gi,'$1 rupees')
+        .replace(/\\bBBQ\\b/g,'barbecue')
+        .replace(/\\bMr\\. Feast\\b/g,'Mister Feast');
+      const u=new SpeechSynthesisUtterance(spoken);
+      const v=chooseVoice();
+      if(v){u.voice=v;u.lang=v.lang;}else{u.lang='en-US';}
+      u.rate=0.90;
+      u.pitch=1.03;
+      u.volume=1;
+      window.speechSynthesis.speak(u);
+    };
+  })();\n`;
+  res.type('application/javascript').set('Cache-Control','no-store').send(base+voicePatch);
+});
+
 app.use(express.static(path.join(__dirname,'public')));
 
 async function initDb(){
