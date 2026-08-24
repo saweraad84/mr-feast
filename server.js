@@ -8,7 +8,9 @@ const app=express();
 const port=process.env.PORT||3000;
 const pool=new Pool({connectionString:process.env.DATABASE_URL,ssl:process.env.DATABASE_URL?{rejectUnauthorized:false}:false});
 const upload=multer({storage:multer.memoryStorage(),limits:{fileSize:5*1024*1024}});
-const ADMIN_PASSWORD=process.env.ADMIN_PASSWORD||'ChangeMeNow!';
+
+const ADMIN_SALT='66a39242a86bdb978eff093bac27bd81';
+const ADMIN_HASH='5b03e235cac49dff023ea38104f8bb1f3da8ce4850277632985bb79064bf7d768f9530182a01f38991f9c5232db0038d8ae58ec7485cb1dec9651aabaf246baf';
 
 app.use(express.json({limit:'1mb'}));
 app.use(express.urlencoded({extended:true}));
@@ -24,7 +26,14 @@ async function initDb(){
   )`);
 }
 
-function makeToken(){return crypto.createHmac('sha256',ADMIN_PASSWORD).update('mr-feast-admin').digest('hex');}
+function passwordMatches(submitted){
+  try{
+    const candidate=crypto.scryptSync(String(submitted||''),ADMIN_SALT,64,{N:16384,r:8,p:1});
+    const expected=Buffer.from(ADMIN_HASH,'hex');
+    return candidate.length===expected.length && crypto.timingSafeEqual(candidate,expected);
+  }catch{return false;}
+}
+function makeToken(){return crypto.createHmac('sha256',ADMIN_HASH).update('mr-feast-admin').digest('hex');}
 function isAdmin(req){
   const cookie=req.headers.cookie||'';
   return cookie.split(';').map(x=>x.trim()).includes(`mrfeast_admin=${makeToken()}`);
@@ -32,15 +41,11 @@ function isAdmin(req){
 function requireAdmin(req,res,next){if(!isAdmin(req)) return res.status(401).json({error:'Unauthorized'}); next();}
 
 app.post('/api/admin/login',(req,res)=>{
-  const submitted=String(req.body.password||'');
-  const a=Buffer.from(submitted); const b=Buffer.from(ADMIN_PASSWORD);
-  const ok=a.length===b.length && crypto.timingSafeEqual(a,b);
-  if(!ok) return res.status(401).json({error:'Wrong password'});
-  const secure=process.env.NODE_ENV==='production'?'; Secure':'';
-  res.setHeader('Set-Cookie',`mrfeast_admin=${makeToken()}; HttpOnly; SameSite=Strict; Path=/; Max-Age=86400${secure}`);
+  if(!passwordMatches(req.body.password)) return res.status(401).json({error:'Wrong password'});
+  res.setHeader('Set-Cookie',`mrfeast_admin=${makeToken()}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=86400`);
   res.json({ok:true});
 });
-app.post('/api/admin/logout',(req,res)=>{res.setHeader('Set-Cookie','mrfeast_admin=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0');res.json({ok:true});});
+app.post('/api/admin/logout',(req,res)=>{res.setHeader('Set-Cookie','mrfeast_admin=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0');res.json({ok:true});});
 app.get('/api/admin/status',(req,res)=>res.json({authenticated:isAdmin(req)}));
 
 app.get('/api/menu-images',async(req,res)=>{
