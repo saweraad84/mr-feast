@@ -6,7 +6,7 @@ const {Pool}=require('pg');
 
 const app=express();
 const port=process.env.PORT||3000;
-const BUILD_VERSION='2026-08-25-slider-v1';
+const BUILD_VERSION='2026-08-25-conversion-v2';
 const pool=new Pool({connectionString:process.env.DATABASE_URL,ssl:process.env.DATABASE_URL?{rejectUnauthorized:false}:false});
 const upload=multer({storage:multer.memoryStorage(),limits:{fileSize:5*1024*1024}});
 
