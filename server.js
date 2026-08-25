@@ -6,12 +6,14 @@ const {Pool}=require('pg');
 
 const app=express();
 const port=process.env.PORT||3000;
+const BUILD_VERSION='2026-08-25-slider-v1';
 const pool=new Pool({connectionString:process.env.DATABASE_URL,ssl:process.env.DATABASE_URL?{rejectUnauthorized:false}:false});
 const upload=multer({storage:multer.memoryStorage(),limits:{fileSize:5*1024*1024}});
 
 const ADMIN_SALT='66a39242a86bdb978eff093bac27bd81';
 const ADMIN_HASH='5b03e235cac49dff023ea38104f8bb1f3da8ce4850277632985bb79064bf7d768f9530182a01f38991f9c5232db0038d8ae58ec7485cb1dec9651aabaf246baf';
 
+app.use((req,res,next)=>{res.setHeader('X-Mr-Feast-Build',BUILD_VERSION);next();});
 app.use(express.json({limit:'1mb'}));
 app.use(express.urlencoded({extended:true}));
 app.use(express.static(path.join(__dirname,'public'),{
@@ -19,6 +21,8 @@ app.use(express.static(path.join(__dirname,'public'),{
   lastModified:false,
   setHeaders:(res)=>res.setHeader('Cache-Control','no-store, no-cache, must-revalidate, proxy-revalidate')
 }));
+
+app.get('/health',(req,res)=>res.json({ok:true,app:'mr-feast',version:BUILD_VERSION}));
 
 async function initDb(){
   if(!process.env.DATABASE_URL) return;
@@ -123,5 +127,5 @@ app.get('/admin',(req,res)=>res.sendFile(path.join(__dirname,'public','admin.htm
 app.get('*',(req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
 
 initDb()
-  .then(()=>app.listen(port,()=>console.log(`Mr. Feast running on ${port}`)))
+  .then(()=>app.listen(port,()=>console.log(`Mr. Feast ${BUILD_VERSION} running on ${port}`)))
   .catch(err=>{console.error(err);process.exit(1)});
