@@ -3,161 +3,30 @@ const path=require('path');
 const crypto=require('crypto');
 const multer=require('multer');
 const {Pool}=require('pg');
-
 const app=express();
 const port=process.env.PORT||3000;
-const BUILD_VERSION='2026-08-26-admin-login-fix-v2';
+const BUILD_VERSION='2026-08-26-operations-v1';
 const pool=new Pool({connectionString:process.env.DATABASE_URL,ssl:process.env.DATABASE_URL?{rejectUnauthorized:false}:false});
 const upload=multer({storage:multer.memoryStorage(),limits:{fileSize:5*1024*1024}});
-
 const ADMIN_SALT='66a39242a86bdb978eff093bac27bd81';
-// Emergency recovery hash for the owner-selected admin password. The plaintext password is not stored in code.
-const ADMIN_HASH='e82977772a0ef8d98c44b3abb9e7b320c79dd0d625d8266948a6bc76f48cab254e98e042b6f769d40cb1a6ad25451178677b0c05481c6f4039df854c2e66694a';
-
-function normalizeSecret(value){
-  let v=String(value??'').trim();
-  if(v.length>=2){
-    const first=v[0],last=v[v.length-1];
-    if((first==='"'&&last==='"')||(first==="'"&&last==="'")) v=v.slice(1,-1).trim();
-  }
-  return v;
-}
-
-function configuredAdminPassword(){
-  return normalizeSecret(process.env.ADMIN_PASSWORD);
-}
-
-app.use((req,res,next)=>{res.setHeader('X-Mr-Feast-Build',BUILD_VERSION);next();});
-app.use(express.json({limit:'1mb'}));
-app.use(express.urlencoded({extended:true}));
-app.use(express.static(path.join(__dirname,'public'),{
-  etag:false,
-  lastModified:false,
-  setHeaders:(res)=>res.setHeader('Cache-Control','no-store, no-cache, must-revalidate, proxy-revalidate')
-}));
-
-app.get('/health',(req,res)=>res.json({ok:true,app:'mr-feast',version:BUILD_VERSION}));
-app.get('/api/admin/config',(req,res)=>{
-  const p=configuredAdminPassword();
-  res.set('Cache-Control','no-store');
-  res.json({environmentPasswordLoaded:Boolean(p),normalizedLength:p.length,build:BUILD_VERSION,recoveryHashEnabled:true});
-});
-
-async function initDb(){
-  if(!process.env.DATABASE_URL) return;
-  await pool.query(`CREATE TABLE IF NOT EXISTS menu_images (
-    item_name TEXT PRIMARY KEY,
-    image_data BYTEA NOT NULL,
-    mime_type TEXT NOT NULL,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-  )`);
-}
-
-function safeEqualText(a,b){
-  const left=Buffer.from(String(a),'utf8');
-  const right=Buffer.from(String(b),'utf8');
-  return left.length===right.length && crypto.timingSafeEqual(left,right);
-}
-
-function passwordMatches(submitted){
-  try{
-    const submittedPassword=normalizeSecret(submitted);
-    if(!submittedPassword) return false;
-
-    // Prefer Railway's environment variable when it is configured.
-    const envPassword=configuredAdminPassword();
-    if(envPassword && safeEqualText(submittedPassword,envPassword)) return true;
-
-    // Recovery path: also check the securely hashed owner credential.
-    const candidate=crypto.scryptSync(submittedPassword,ADMIN_SALT,64,{N:16384,r:8,p:1});
-    const expected=Buffer.from(ADMIN_HASH,'hex');
-    return candidate.length===expected.length && crypto.timingSafeEqual(candidate,expected);
-  }catch{return false;}
-}
-
-function makeToken(){
-  const secret=configuredAdminPassword()||ADMIN_HASH;
-  return crypto.createHmac('sha256',secret).update('mr-feast-admin').digest('hex');
-}
-function isAdmin(req){
-  const cookie=req.headers.cookie||'';
-  return cookie.split(';').map(x=>x.trim()).includes(`mrfeast_admin=${makeToken()}`);
-}
-function requireAdmin(req,res,next){
-  if(!isAdmin(req)) return res.status(401).json({error:'Unauthorized'});
-  next();
-}
-
-app.post('/api/admin/login',(req,res)=>{
-  const supplied=normalizeSecret(req.body?.password);
-  if(!supplied) return res.status(400).json({error:'Enter admin password'});
-  if(!passwordMatches(supplied)) return res.status(401).json({error:'Wrong password'});
-  res.setHeader('Set-Cookie',`mrfeast_admin=${makeToken()}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=86400`);
-  res.json({ok:true});
-});
-app.post('/api/admin/logout',(req,res)=>{
-  res.setHeader('Set-Cookie','mrfeast_admin=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0');
-  res.json({ok:true});
-});
-app.get('/api/admin/status',(req,res)=>res.json({authenticated:isAdmin(req)}));
-
-app.get('/api/menu-images',async(req,res)=>{
-  try{
-    if(!process.env.DATABASE_URL) return res.json({});
-    const {rows}=await pool.query('SELECT item_name, updated_at FROM menu_images');
-    const out={};
-    rows.forEach(r=>out[r.item_name]=`/api/image/${encodeURIComponent(r.item_name)}?v=${new Date(r.updated_at).getTime()}`);
-    res.json(out);
-  }catch(err){
-    console.error(err);
-    res.json({});
-  }
-});
-
-app.get('/api/image/:name',async(req,res)=>{
-  try{
-    if(!process.env.DATABASE_URL) return res.sendStatus(404);
-    const {rows}=await pool.query('SELECT image_data,mime_type FROM menu_images WHERE item_name=$1',[req.params.name]);
-    if(!rows.length) return res.sendStatus(404);
-    res.set('Content-Type',rows[0].mime_type);
-    res.set('Cache-Control','public, max-age=300');
-    res.send(rows[0].image_data);
-  }catch(err){
-    console.error(err);
-    res.sendStatus(500);
-  }
-});
-
-app.post('/api/admin/image',requireAdmin,upload.single('image'),async(req,res)=>{
-  try{
-    if(!req.file) return res.status(400).json({error:'Choose an image first'});
-    if(!req.file.mimetype.startsWith('image/')) return res.status(400).json({error:'File must be an image'});
-    if(!req.body.item) return res.status(400).json({error:'Choose a menu item'});
-    if(!process.env.DATABASE_URL) return res.status(500).json({error:'Database is not configured'});
-    await pool.query(`INSERT INTO menu_images(item_name,image_data,mime_type,updated_at)
-      VALUES($1,$2,$3,NOW())
-      ON CONFLICT(item_name) DO UPDATE SET image_data=EXCLUDED.image_data,mime_type=EXCLUDED.mime_type,updated_at=NOW()`,
-      [req.body.item,req.file.buffer,req.file.mimetype]);
-    res.json({ok:true,url:`/api/image/${encodeURIComponent(req.body.item)}?v=${Date.now()}`});
-  }catch(err){
-    console.error(err);
-    res.status(500).json({error:'Image upload failed'});
-  }
-});
-
-app.delete('/api/admin/image/:name',requireAdmin,async(req,res)=>{
-  try{
-    if(process.env.DATABASE_URL) await pool.query('DELETE FROM menu_images WHERE item_name=$1',[req.params.name]);
-    res.json({ok:true});
-  }catch(err){
-    console.error(err);
-    res.status(500).json({error:'Image removal failed'});
-  }
-});
-
-app.get('/admin',(req,res)=>res.sendFile(path.join(__dirname,'public','admin.html')));
-app.get('*',(req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
-
-initDb()
-  .then(()=>app.listen(port,()=>console.log(`Mr. Feast ${BUILD_VERSION} running on ${port}`)))
-  .catch(err=>{console.error(err);process.exit(1)});
+const ADMIN_HASH='5b03e235cac49dff023ea38104f8bb1f3da8ce4850277632985bb79064bf7d768f9530182a01f38991f9c5232db0038d8ae58ec7485cb1dec9651aabaf246baf';
+const RECOVERY_SALT='mr-feast-recovery-2026-08-26';
+const RECOVERY_HASH='43b4319e3e02b3ec8b8bf3d8f5e44c536db61c6f18c8641caee4b4f959b6d154a1c74d5b7466e83376cfae38a8b3e27127f7343d31c09c4b94a76b70c4c96a13';
+function norm(v){let x=String(v??'').trim();if(x.length>1&&((x[0]==='"'&&x.at(-1)==='"')||(x[0]==="'"&&x.at(-1)==="'")))x=x.slice(1,-1).trim();return x}
+function envPass(){return norm(process.env.ADMIN_PASSWORD)}
+function safeEqual(a,b){const x=Buffer.from(a),y=Buffer.from(b);return x.length===y.length&&crypto.timingSafeEqual(x,y)}
+function passwordMatches(v){const s=norm(v);if(!s)return false;const e=envPass();if(e&&safeEqual(s,e))return true;const r=crypto.scryptSync(s,RECOVERY_SALT,64,{N:16384,r:8,p:1});if(safeEqual(r.toString('hex'),RECOVERY_HASH))return true;const c=crypto.scryptSync(s,ADMIN_SALT,64,{N:16384,r:8,p:1});return safeEqual(c.toString('hex'),ADMIN_HASH)}
+function token(){return crypto.createHmac('sha256',envPass()||ADMIN_HASH).update('mr-feast-admin').digest('hex')}
+function isAdmin(req){return (req.headers.cookie||'').split(';').map(x=>x.trim()).includes(`mrfeast_admin=${token()}`)}
+function requireAdmin(req,res,next){if(!isAdmin(req))return res.status(401).json({error:'Unauthorized'});next()}
+app.use((req,res,next)=>{res.setHeader('X-Mr-Feast-Build',BUILD_VERSION);next()});app.use(express.json({limit:'2mb'}));app.use(express.urlencoded({extended:true}));app.use(express.static(path.join(__dirname,'public'),{etag:false,lastModified:false,setHeaders:r=>r.setHeader('Cache-Control','no-store')}));
+async function initDb(){if(!process.env.DATABASE_URL)return;await pool.query(`CREATE TABLE IF NOT EXISTS menu_images(item_name TEXT PRIMARY KEY,image_data BYTEA NOT NULL,mime_type TEXT NOT NULL,updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW());CREATE TABLE IF NOT EXISTS deals(id SERIAL PRIMARY KEY,name TEXT NOT NULL,price INTEGER NOT NULL DEFAULT 0,description TEXT NOT NULL DEFAULT '',image_data BYTEA,mime_type TEXT,position INTEGER NOT NULL DEFAULT 0,active BOOLEAN NOT NULL DEFAULT TRUE,created_at TIMESTAMPTZ DEFAULT NOW());CREATE TABLE IF NOT EXISTS reviews(id SERIAL PRIMARY KEY,customer_name TEXT NOT NULL,rating INTEGER NOT NULL DEFAULT 5,review_text TEXT NOT NULL,active BOOLEAN NOT NULL DEFAULT TRUE,created_at TIMESTAMPTZ DEFAULT NOW());CREATE TABLE IF NOT EXISTS orders(id SERIAL PRIMARY KEY,customer_name TEXT NOT NULL,phone TEXT NOT NULL,email TEXT NOT NULL,notes TEXT NOT NULL DEFAULT '',items JSONB NOT NULL,total INTEGER NOT NULL DEFAULT 0,status TEXT NOT NULL DEFAULT 'queue',created_at TIMESTAMPTZ DEFAULT NOW(),updated_at TIMESTAMPTZ DEFAULT NOW());`);const d=await pool.query('SELECT COUNT(*)::int n FROM deals');if(!d.rows[0].n)await pool.query(`INSERT INTO deals(name,price,description,position) VALUES ('Mr. Feast Deal 01',899,'2 Zinger Burgers · Large Fries · 2 Drinks',1),('BBQ Feast Deal',1499,'Chicken Tikka · Malai Boti · Seekh Kebab · 2 Naan · Salad',2),('Family Feast',2799,'4 Burgers · 2 Loaded Fries · 12 Wings · 4 Drinks',3),('Sweet Feast',999,'Brownie · 2 Ice Creams · Waffles · Chocolate Lava Cake',4)`)}
+app.get('/health',(q,r)=>r.json({ok:true,app:'mr-feast',version:BUILD_VERSION}));app.get('/api/admin/config',(q,r)=>r.json({environmentPasswordLoaded:Boolean(envPass()),build:BUILD_VERSION,orderEmailConfigured:Boolean(process.env.ORDER_EMAIL&&process.env.RESEND_API_KEY)}));
+app.post('/api/admin/login',(q,r)=>{if(!passwordMatches(q.body?.password))return r.status(401).json({error:'Wrong password'});r.setHeader('Set-Cookie',`mrfeast_admin=${token()}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=86400`);r.json({ok:true})});app.post('/api/admin/logout',(q,r)=>{r.setHeader('Set-Cookie','mrfeast_admin=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0');r.json({ok:true})});app.get('/api/admin/status',(q,r)=>r.json({authenticated:isAdmin(q)}));
+app.get('/api/menu-images',async(q,r)=>{try{if(!process.env.DATABASE_URL)return r.json({});const x=await pool.query('SELECT item_name,updated_at FROM menu_images');const o={};x.rows.forEach(a=>o[a.item_name]=`/api/image/${encodeURIComponent(a.item_name)}?v=${new Date(a.updated_at).getTime()}`);r.json(o)}catch{r.json({})}});app.get('/api/image/:name',async(q,r)=>{try{const x=await pool.query('SELECT image_data,mime_type FROM menu_images WHERE item_name=$1',[q.params.name]);if(!x.rows.length)return r.sendStatus(404);r.type(x.rows[0].mime_type).send(x.rows[0].image_data)}catch{r.sendStatus(404)}});app.post('/api/admin/image',requireAdmin,upload.single('image'),async(q,r)=>{if(!q.file||!q.body.item)return r.status(400).json({error:'Choose item and image'});await pool.query(`INSERT INTO menu_images(item_name,image_data,mime_type,updated_at) VALUES($1,$2,$3,NOW()) ON CONFLICT(item_name) DO UPDATE SET image_data=$2,mime_type=$3,updated_at=NOW()`,[q.body.item,q.file.buffer,q.file.mimetype]);r.json({ok:true})});app.delete('/api/admin/image/:name',requireAdmin,async(q,r)=>{await pool.query('DELETE FROM menu_images WHERE item_name=$1',[q.params.name]);r.json({ok:true})});
+app.get('/api/deals',async(q,r)=>{try{const x=await pool.query('SELECT id,name,price,description,position,active,(image_data IS NOT NULL) has_image FROM deals WHERE active=true ORDER BY position,id');r.json(x.rows)}catch{r.json([])}});app.get('/api/deal-image/:id',async(q,r)=>{try{const x=await pool.query('SELECT image_data,mime_type FROM deals WHERE id=$1',[q.params.id]);if(!x.rows[0]?.image_data)return r.sendStatus(404);r.type(x.rows[0].mime_type).send(x.rows[0].image_data)}catch{r.sendStatus(404)}});app.get('/api/admin/deals',requireAdmin,async(q,r)=>{const x=await pool.query('SELECT id,name,price,description,position,active,(image_data IS NOT NULL) has_image FROM deals ORDER BY position,id');r.json(x.rows)});app.post('/api/admin/deals',requireAdmin,upload.single('image'),async(q,r)=>{const {name,price,description,position}=q.body;if(!name)return r.status(400).json({error:'Deal name required'});const x=await pool.query('INSERT INTO deals(name,price,description,position,image_data,mime_type) VALUES($1,$2,$3,$4,$5,$6) RETURNING id',[name,Number(price)||0,description||'',Number(position)||0,q.file?.buffer||null,q.file?.mimetype||null]);r.json({ok:true,id:x.rows[0].id})});app.put('/api/admin/deals/:id',requireAdmin,upload.single('image'),async(q,r)=>{const {name,price,description,position,active}=q.body;await pool.query(`UPDATE deals SET name=$1,price=$2,description=$3,position=$4,active=$5,image_data=COALESCE($6,image_data),mime_type=COALESCE($7,mime_type) WHERE id=$8`,[name,Number(price)||0,description||'',Number(position)||0,String(active)!=='false',q.file?.buffer||null,q.file?.mimetype||null,q.params.id]);r.json({ok:true})});app.delete('/api/admin/deals/:id',requireAdmin,async(q,r)=>{await pool.query('DELETE FROM deals WHERE id=$1',[q.params.id]);r.json({ok:true})});
+app.get('/api/reviews',async(q,r)=>{try{const x=await pool.query('SELECT id,customer_name,rating,review_text FROM reviews WHERE active=true ORDER BY id DESC');r.json(x.rows)}catch{r.json([])}});app.get('/api/admin/reviews',requireAdmin,async(q,r)=>{const x=await pool.query('SELECT * FROM reviews ORDER BY id DESC');r.json(x.rows)});app.post('/api/admin/reviews',requireAdmin,async(q,r)=>{const {customer_name,rating,review_text}=q.body;if(!customer_name||!review_text)return r.status(400).json({error:'Name and review required'});await pool.query('INSERT INTO reviews(customer_name,rating,review_text) VALUES($1,$2,$3)',[customer_name,Math.max(1,Math.min(5,Number(rating)||5)),review_text]);r.json({ok:true})});app.delete('/api/admin/reviews/:id',requireAdmin,async(q,r)=>{await pool.query('DELETE FROM reviews WHERE id=$1',[q.params.id]);r.json({ok:true})});
+async function emailOrder(order){if(!process.env.RESEND_API_KEY||!process.env.ORDER_EMAIL)return false;const text=`New Mr. Feast order #${order.id}\nName: ${order.customer_name}\nPhone: ${order.phone}\nEmail: ${order.email}\n\n${order.items.map(x=>`${x.qty} x ${x.name} - Rs. ${x.qty*x.price}`).join('\n')}\n\nTotal: Rs. ${order.total}\nNotes: ${order.notes||'-'}`;const resp=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:`Bearer ${process.env.RESEND_API_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({from:process.env.ORDER_FROM_EMAIL||'Mr. Feast <onboarding@resend.dev>',to:[process.env.ORDER_EMAIL],subject:`Mr. Feast Order #${order.id}`,text})});return resp.ok}
+app.post('/api/orders',async(q,r)=>{try{const {customer_name,phone,email,notes,items,total}=q.body;if(!customer_name||!phone||!email||!Array.isArray(items)||!items.length)return r.status(400).json({error:'Name, phone, email and order items are required'});const x=await pool.query('INSERT INTO orders(customer_name,phone,email,notes,items,total) VALUES($1,$2,$3,$4,$5,$6) RETURNING *',[customer_name,phone,email,notes||'',JSON.stringify(items),Number(total)||0]);let emailed=false;try{emailed=await emailOrder(x.rows[0])}catch(e){console.error('Order email failed',e)}r.json({ok:true,orderId:x.rows[0].id,emailed})}catch(e){console.error(e);r.status(500).json({error:'Could not place order'})}});app.get('/api/admin/orders',requireAdmin,async(q,r)=>{const x=await pool.query('SELECT * FROM orders ORDER BY created_at DESC LIMIT 500');r.json(x.rows)});app.patch('/api/admin/orders/:id/status',requireAdmin,async(q,r)=>{const allowed=['queue','cooking','ready','completed'];if(!allowed.includes(q.body.status))return r.status(400).json({error:'Invalid status'});await pool.query('UPDATE orders SET status=$1,updated_at=NOW() WHERE id=$2',[q.body.status,q.params.id]);r.json({ok:true})});
+app.get('/admin',(q,r)=>r.sendFile(path.join(__dirname,'public','admin.html')));app.get('/kitchen',(q,r)=>r.sendFile(path.join(__dirname,'public','kitchen.html')));app.get('/owner',(q,r)=>r.sendFile(path.join(__dirname,'public','owner.html')));app.get('*',(q,r)=>r.sendFile(path.join(__dirname,'public','index.html')));
+initDb().then(()=>app.listen(port,()=>console.log(`Mr. Feast ${BUILD_VERSION} running on ${port}`))).catch(e=>{console.error(e);process.exit(1)});
