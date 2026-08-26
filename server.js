@@ -6,12 +6,25 @@ const {Pool}=require('pg');
 
 const app=express();
 const port=process.env.PORT||3000;
-const BUILD_VERSION='2026-08-25-conversion-v2';
+const BUILD_VERSION='2026-08-26-admin-login-fix-v1';
 const pool=new Pool({connectionString:process.env.DATABASE_URL,ssl:process.env.DATABASE_URL?{rejectUnauthorized:false}:false});
 const upload=multer({storage:multer.memoryStorage(),limits:{fileSize:5*1024*1024}});
 
 const ADMIN_SALT='66a39242a86bdb978eff093bac27bd81';
 const ADMIN_HASH='5b03e235cac49dff023ea38104f8bb1f3da8ce4850277632985bb79064bf7d768f9530182a01f38991f9c5232db0038d8ae58ec7485cb1dec9651aabaf246baf';
+
+function normalizeSecret(value){
+  let v=String(value??'').trim();
+  if(v.length>=2){
+    const first=v[0],last=v[v.length-1];
+    if((first==='"'&&last==='"')||(first==="'"&&last==="'")) v=v.slice(1,-1).trim();
+  }
+  return v;
+}
+
+function configuredAdminPassword(){
+  return normalizeSecret(process.env.ADMIN_PASSWORD);
+}
 
 app.use((req,res,next)=>{res.setHeader('X-Mr-Feast-Build',BUILD_VERSION);next();});
 app.use(express.json({limit:'1mb'}));
@@ -23,6 +36,11 @@ app.use(express.static(path.join(__dirname,'public'),{
 }));
 
 app.get('/health',(req,res)=>res.json({ok:true,app:'mr-feast',version:BUILD_VERSION}));
+app.get('/api/admin/config',(req,res)=>{
+  const p=configuredAdminPassword();
+  res.set('Cache-Control','no-store');
+  res.json({environmentPasswordLoaded:Boolean(p),normalizedLength:p.length,build:BUILD_VERSION});
+});
 
 async function initDb(){
   if(!process.env.DATABASE_URL) return;
@@ -36,19 +54,23 @@ async function initDb(){
 
 function passwordMatches(submitted){
   try{
-    const supplied=Buffer.from(String(submitted||''));
-    const envPassword=String(process.env.ADMIN_PASSWORD||'');
+    const submittedPassword=normalizeSecret(submitted);
+    const envPassword=configuredAdminPassword();
     if(envPassword){
-      const expected=Buffer.from(envPassword);
+      const supplied=Buffer.from(submittedPassword,'utf8');
+      const expected=Buffer.from(envPassword,'utf8');
       return supplied.length===expected.length && crypto.timingSafeEqual(supplied,expected);
     }
-    const candidate=crypto.scryptSync(String(submitted||''),ADMIN_SALT,64,{N:16384,r:8,p:1});
+    const candidate=crypto.scryptSync(submittedPassword,ADMIN_SALT,64,{N:16384,r:8,p:1});
     const expected=Buffer.from(ADMIN_HASH,'hex');
     return candidate.length===expected.length && crypto.timingSafeEqual(candidate,expected);
   }catch{return false;}
 }
 
-function makeToken(){return crypto.createHmac('sha256',ADMIN_HASH).update('mr-feast-admin').digest('hex');}
+function makeToken(){
+  const secret=configuredAdminPassword()||ADMIN_HASH;
+  return crypto.createHmac('sha256',secret).update('mr-feast-admin').digest('hex');
+}
 function isAdmin(req){
   const cookie=req.headers.cookie||'';
   return cookie.split(';').map(x=>x.trim()).includes(`mrfeast_admin=${makeToken()}`);
@@ -59,7 +81,9 @@ function requireAdmin(req,res,next){
 }
 
 app.post('/api/admin/login',(req,res)=>{
-  if(!passwordMatches(req.body.password)) return res.status(401).json({error:'Wrong password'});
+  const supplied=normalizeSecret(req.body?.password);
+  if(!supplied) return res.status(400).json({error:'Enter admin password'});
+  if(!passwordMatches(supplied)) return res.status(401).json({error:'Wrong password'});
   res.setHeader('Set-Cookie',`mrfeast_admin=${makeToken()}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=86400`);
   res.json({ok:true});
 });
