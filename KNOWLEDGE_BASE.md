@@ -18,10 +18,12 @@ Reviews are database-managed. Admin can add and remove customer reviews. Only ac
 ## Ordering
 Customers add menu items or deals to the cart. Checkout requires customer name, contact number and email address; notes are optional. Orders are saved in PostgreSQL and enter status `queue`. Order cancellation is intentionally not available in this phase. WhatsApp ordering is intentionally removed for now.
 
-Order email notification is supported when Railway variables `ORDER_EMAIL` and `RESEND_API_KEY` are configured. Optional `ORDER_FROM_EMAIL` can define the sender. Without those variables, the order is still stored and visible in Kitchen/Owner dashboards.
+The restaurant order-receiving email is database-managed from the Admin panel. Current default order email: `saweraad84@gmail.com`. Admin can add, edit or remove this address without changing Railway variables. Removing it stops email delivery but does not stop orders from being saved or appearing in Kitchen/Owner dashboards.
+
+Automatic email delivery uses the currently saved restaurant order email plus Railway `RESEND_API_KEY`. Optional `ORDER_FROM_EMAIL` can define the sender. If email delivery credentials are not configured, the order is still stored and visible in Kitchen/Owner dashboards.
 
 ## Admin
-Private route: `/admin`. Password protected. Password field includes show/hide eye control. Admin manages menu pictures, deals and reviews, and has links to Kitchen and Owner dashboards.
+Private route: `/admin`. Password protected. Password field includes show/hide eye control. Admin manages restaurant order email, menu pictures, deals and reviews, and has links to Kitchen and Owner dashboards.
 
 ## Kitchen Dashboard
 Private route: `/kitchen`. Uses admin login. Shows three operational stages: Order in Queue, Order in Cooking, Order Ready. Operator can move Queue → Cooking → Ready → Completed.
@@ -30,7 +32,7 @@ Private route: `/kitchen`. Uses admin login. Shows three operational stages: Ord
 Private route: `/owner`. Uses admin login. Shows counts for Queue, Cooking, Ready and Completed, item/deal quantity figures across orders, and a separate completed-orders list.
 
 ## Contact / business details
-Exact address, opening hours, phone and final order email are not yet confirmed in website data and must not be invented.
+Exact address, opening hours and phone are not yet confirmed in website data and must not be invented. Current restaurant order-receiving email is `saweraad84@gmail.com`, unless the Admin changes or removes it.
 
 ## Assistant rules
 The Mr. Feast Assistant must answer only from information actually present on the website/knowledge base and current database-driven deals. It may explain menu items, sample prices, deals and ordering steps. If requested information is not present, it must say it does not have that information and must not guess, invent, infer or provide unrelated general knowledge.
