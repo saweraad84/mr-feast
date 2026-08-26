@@ -6,12 +6,13 @@ const {Pool}=require('pg');
 
 const app=express();
 const port=process.env.PORT||3000;
-const BUILD_VERSION='2026-08-26-admin-login-fix-v1';
+const BUILD_VERSION='2026-08-26-admin-login-fix-v2';
 const pool=new Pool({connectionString:process.env.DATABASE_URL,ssl:process.env.DATABASE_URL?{rejectUnauthorized:false}:false});
 const upload=multer({storage:multer.memoryStorage(),limits:{fileSize:5*1024*1024}});
 
 const ADMIN_SALT='66a39242a86bdb978eff093bac27bd81';
-const ADMIN_HASH='5b03e235cac49dff023ea38104f8bb1f3da8ce4850277632985bb79064bf7d768f9530182a01f38991f9c5232db0038d8ae58ec7485cb1dec9651aabaf246baf';
+// Emergency recovery hash for the owner-selected admin password. The plaintext password is not stored in code.
+const ADMIN_HASH='e82977772a0ef8d98c44b3abb9e7b320c79dd0d625d8266948a6bc76f48cab254e98e042b6f769d40cb1a6ad25451178677b0c05481c6f4039df854c2e66694a';
 
 function normalizeSecret(value){
   let v=String(value??'').trim();
@@ -39,7 +40,7 @@ app.get('/health',(req,res)=>res.json({ok:true,app:'mr-feast',version:BUILD_VERS
 app.get('/api/admin/config',(req,res)=>{
   const p=configuredAdminPassword();
   res.set('Cache-Control','no-store');
-  res.json({environmentPasswordLoaded:Boolean(p),normalizedLength:p.length,build:BUILD_VERSION});
+  res.json({environmentPasswordLoaded:Boolean(p),normalizedLength:p.length,build:BUILD_VERSION,recoveryHashEnabled:true});
 });
 
 async function initDb(){
@@ -52,15 +53,22 @@ async function initDb(){
   )`);
 }
 
+function safeEqualText(a,b){
+  const left=Buffer.from(String(a),'utf8');
+  const right=Buffer.from(String(b),'utf8');
+  return left.length===right.length && crypto.timingSafeEqual(left,right);
+}
+
 function passwordMatches(submitted){
   try{
     const submittedPassword=normalizeSecret(submitted);
+    if(!submittedPassword) return false;
+
+    // Prefer Railway's environment variable when it is configured.
     const envPassword=configuredAdminPassword();
-    if(envPassword){
-      const supplied=Buffer.from(submittedPassword,'utf8');
-      const expected=Buffer.from(envPassword,'utf8');
-      return supplied.length===expected.length && crypto.timingSafeEqual(supplied,expected);
-    }
+    if(envPassword && safeEqualText(submittedPassword,envPassword)) return true;
+
+    // Recovery path: also check the securely hashed owner credential.
     const candidate=crypto.scryptSync(submittedPassword,ADMIN_SALT,64,{N:16384,r:8,p:1});
     const expected=Buffer.from(ADMIN_HASH,'hex');
     return candidate.length===expected.length && crypto.timingSafeEqual(candidate,expected);
