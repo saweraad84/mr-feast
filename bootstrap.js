@@ -19,16 +19,39 @@ function wrappedExpress(...args){
   setupContentApi(app,pool,requireAdmin,upload);
   setupCategoryApi(app,pool,requireAdmin,upload);
 
-  app.get('/',(req,res)=>{
+  async function applySavedCategoryImages(html){
+    if(!process.env.DATABASE_URL)return html;
+    try{
+      const {rows}=await pool.query(`SELECT category_key,updated_at,(image_data IS NOT NULL) AS has_image FROM category_images WHERE category_key IN ('fastfood','bbq','sweets')`);
+      const map=new Map(rows.map(r=>[r.category_key,r]));
+      const keys=['fastfood','bbq','sweets'];
+      let index=0;
+      return html.replace(/(<section class="catrow">[\s\S]*?<\/section>)/,section=>section.replace(/<img\s+src="[^"]*"/g,match=>{
+        const key=keys[index++];
+        const row=map.get(key);
+        if(!row||!row.has_image)return match;
+        const version=new Date(row.updated_at).getTime();
+        return match.replace(/src="[^"]*"/,`src="/api/category-image/${key}?v=${version}"`);
+      }));
+    }catch(e){
+      console.error('server category image render',e);
+      return html;
+    }
+  }
+
+  app.get('/',async(req,res)=>{
     const file=path.join(__dirname,'public','index.html');
     let html=fs.readFileSync(file,'utf8');
+    html=await applySavedCategoryImages(html);
     html=html.replace('</body>','<script src="/slider-live.js"></script><script src="/hero-live.js"></script><script src="/content-live.js"></script><script src="/category-live.js"></script><script src="/category-style.js"></script><script src="/location-map.js"></script></body>');
+    res.set('Cache-Control','no-store');
     res.type('html').send(html);
   });
   app.get('/admin',(req,res)=>{
     const file=path.join(__dirname,'public','admin.html');
     let html=fs.readFileSync(file,'utf8');
     html=html.replace('</body>','<script src="/admin-content.js"></script><script src="/admin-category.js"></script><script src="/admin-image-fix.js"></script></body>');
+    res.set('Cache-Control','no-store');
     res.type('html').send(html);
   });
   return app;
