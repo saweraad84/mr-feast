@@ -17,7 +17,7 @@
     .hero-live-slide.active{opacity:1;transform:scale(1);pointer-events:auto}
     .hero-live-slide img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
     .hero-live-slide:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(21,5,9,.92) 0%,rgba(21,5,9,.67) 42%,rgba(21,5,9,.27) 72%,rgba(21,5,9,.18) 100%),linear-gradient(0deg,rgba(21,5,9,.58),transparent 58%)}
-    .hero-live-content{position:absolute;z-index:4;left:8vw;top:50%;transform:translateY(-50%);max-width:790px;padding-right:24px}
+    .hero-live-content{position:absolute;z-index:6;left:8vw;top:50%;transform:translateY(-50%);max-width:790px;padding-right:24px}
     .hero-live-kicker{font-size:11px;letter-spacing:3px;font-weight:900;color:#d7b86c;margin-bottom:18px}
     .hero-live-title{font:700 clamp(48px,7vw,94px)/.9 'Playfair Display',serif;letter-spacing:-4px;margin:0 0 24px;text-wrap:balance}
     .hero-live-title em{font-style:normal;color:#d7b86c}
@@ -28,23 +28,47 @@
     .hero-live-secondary{border:1px solid rgba(255,255,255,.58);color:#fff;background:rgba(18,5,9,.25);backdrop-filter:blur(5px)}
     .hero-live-primary:hover{transform:translateY(-1px);filter:brightness(1.06)}
     .hero-live-secondary:hover{background:rgba(255,255,255,.12)}
-    .hero-live-nav{position:absolute;z-index:7;top:50%;transform:translateY(-50%);width:48px;height:48px;border-radius:50%;border:1px solid rgba(229,202,140,.75);background:rgba(25,7,12,.45);color:#f9ecd3;font-size:27px;display:grid;place-items:center;cursor:pointer;backdrop-filter:blur(6px);transition:.2s}
+    .hero-live-nav{position:absolute;z-index:9;top:50%;transform:translateY(-50%);width:48px;height:48px;border-radius:50%;border:1px solid rgba(229,202,140,.75);background:rgba(25,7,12,.45);color:#f9ecd3;font-size:27px;display:grid;place-items:center;cursor:pointer;backdrop-filter:blur(6px);transition:.2s}
     .hero-live-nav:hover{background:#63212d;border-color:#efd895}
     .hero-live-prev{left:22px}.hero-live-next{right:22px}
-    .hero-live-dots{position:absolute;z-index:8;left:8vw;bottom:30px;display:flex;align-items:center;gap:9px}
+    .hero-live-dots{position:absolute;z-index:9;left:8vw;bottom:30px;display:flex;align-items:center;gap:9px}
     .hero-live-dot{width:10px;height:10px;border:0;border-radius:50%;padding:0;background:rgba(255,255,255,.47);cursor:pointer;transition:.25s}
     .hero-live-dot.active{background:#d7b86c;transform:scale(1.35)}
-    .hero-live-count{position:absolute;z-index:8;right:8vw;bottom:26px;color:#eadfc8;font-size:11px;letter-spacing:2px;font-weight:900}
-    .hero-live-progress{position:absolute;z-index:8;left:0;bottom:0;width:100%;height:3px;background:rgba(255,255,255,.15)}
+    .hero-live-count{position:absolute;z-index:9;right:8vw;bottom:26px;color:#eadfc8;font-size:11px;letter-spacing:2px;font-weight:900}
+    .hero-live-progress{position:absolute;z-index:9;left:0;bottom:0;width:100%;height:3px;background:rgba(255,255,255,.15)}
     .hero-live-progress span{display:block;height:100%;width:0;background:#c9a45c}
     .hero-live-progress.running span{animation:heroProgress 5.2s linear forwards}
+
+    /* Fire flame template */
+    .hero-fire{position:absolute;inset:0;z-index:5;pointer-events:none;overflow:hidden;mix-blend-mode:screen}
+    .hero-fire:before{content:"";position:absolute;left:-8%;right:-8%;bottom:-12%;height:44%;background:
+      radial-gradient(ellipse at 8% 100%,rgba(255,210,72,.95) 0 8%,rgba(255,112,0,.92) 9% 18%,rgba(145,0,0,.55) 19% 28%,transparent 29%),
+      radial-gradient(ellipse at 22% 100%,rgba(255,230,120,.95) 0 7%,rgba(255,120,0,.93) 8% 17%,rgba(162,8,0,.55) 18% 29%,transparent 30%),
+      radial-gradient(ellipse at 38% 100%,rgba(255,214,80,.95) 0 8%,rgba(255,96,0,.92) 9% 19%,rgba(160,0,0,.54) 20% 31%,transparent 32%),
+      radial-gradient(ellipse at 55% 100%,rgba(255,228,118,.95) 0 7%,rgba(255,122,0,.93) 8% 18%,rgba(169,7,0,.54) 19% 30%,transparent 31%),
+      radial-gradient(ellipse at 72% 100%,rgba(255,218,92,.95) 0 8%,rgba(255,104,0,.92) 9% 18%,rgba(154,0,0,.54) 19% 29%,transparent 30%),
+      radial-gradient(ellipse at 88% 100%,rgba(255,232,135,.95) 0 7%,rgba(255,120,0,.93) 8% 18%,rgba(155,4,0,.54) 19% 29%,transparent 30%);
+      filter:blur(5px) saturate(1.35);transform-origin:center bottom;animation:fireWave 2.4s ease-in-out infinite alternate;opacity:.88}
+    .hero-fire:after{content:"";position:absolute;inset:0;background:
+      radial-gradient(circle at 12% 78%,rgba(255,170,40,.85) 0 2px,transparent 3px),
+      radial-gradient(circle at 25% 68%,rgba(255,110,0,.9) 0 2px,transparent 3px),
+      radial-gradient(circle at 39% 73%,rgba(255,220,100,.9) 0 1.5px,transparent 2.5px),
+      radial-gradient(circle at 58% 66%,rgba(255,130,0,.88) 0 2px,transparent 3px),
+      radial-gradient(circle at 74% 72%,rgba(255,215,90,.9) 0 1.5px,transparent 2.5px),
+      radial-gradient(circle at 89% 64%,rgba(255,100,0,.9) 0 2px,transparent 3px);
+      background-size:180px 180px,220px 220px,170px 170px,210px 210px,190px 190px,230px 230px;
+      animation:sparksRise 4.8s linear infinite;opacity:.65}
+    .hero-fire-glow{position:absolute;left:0;right:0;bottom:0;height:34%;z-index:4;pointer-events:none;background:linear-gradient(0deg,rgba(255,76,0,.24),rgba(255,128,0,.09) 48%,transparent);filter:blur(8px)}
+    @keyframes fireWave{0%{transform:translateY(7px) scaleY(.9) scaleX(1.02)}50%{transform:translateY(-5px) scaleY(1.08) scaleX(.98)}100%{transform:translateY(2px) scaleY(.96) scaleX(1.04)}}
+    @keyframes sparksRise{from{background-position:0 120px,0 180px,0 140px,0 200px,0 160px,0 190px}to{background-position:10px -140px,-12px -110px,8px -150px,-9px -120px,13px -135px,-7px -125px}}
+
     @keyframes heroProgress{from{width:0}to{width:100%}}
-    @media(prefers-reduced-motion:reduce){.hero-live-slide{transition:none;transform:none}.hero-live-progress{display:none}}
-    @media(max-width:760px){.hero-live-content{left:7vw;right:7vw;padding:0}.hero-live-title{letter-spacing:-2px;font-size:clamp(44px,13vw,68px)}.hero-live-subtitle{font-size:15px}.hero-live-prev{left:10px}.hero-live-next{right:10px}.hero-live-nav{width:42px;height:42px}.hero-live-dots{left:7vw;bottom:22px}.hero-live-count{right:7vw;bottom:20px}.hero-live-actions a{min-height:44px;padding:0 16px}}
+    @media(prefers-reduced-motion:reduce){.hero-live-slide{transition:none;transform:none}.hero-live-progress{display:none}.hero-fire:before,.hero-fire:after{animation:none}}
+    @media(max-width:760px){.hero-live-content{left:7vw;right:7vw;padding:0}.hero-live-title{letter-spacing:-2px;font-size:clamp(44px,13vw,68px)}.hero-live-subtitle{font-size:15px}.hero-live-prev{left:10px}.hero-live-next{right:10px}.hero-live-nav{width:42px;height:42px}.hero-live-dots{left:7vw;bottom:22px}.hero-live-count{right:7vw;bottom:20px}.hero-live-actions a{min-height:44px;padding:0 16px}.hero-fire:before{height:34%;bottom:-10%;opacity:.7}.hero-fire-glow{height:28%}}
   `;
   document.head.appendChild(style);
 
-  const esc=v=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+  const esc=v=>String(v??'').replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','\"':'&quot;'}[c]));
   const safeLink=v=>{const s=String(v||'#menu').trim();return /^(#|\/|https?:\/\/)/i.test(s)?s:'#menu'};
   const highlightTitle=title=>{
     const t=esc(title||'');
@@ -57,7 +81,7 @@
   function mount(items){
     const visible=items.filter(x=>x.visible!==false).sort((a,b)=>(a.sortOrder||a.slideNo)-(b.sortOrder||b.slideNo));
     const slides=visible.length?visible:defaults;
-    hero.innerHTML=`<div class="hero-live-track">${slides.map((x,i)=>`<section class="hero-live-slide${i===0?' active':''}" aria-hidden="${i===0?'false':'true'}"><img src="${esc(x.imageUrl||defaults[(x.slideNo||1)-1].imageUrl)}" alt="${esc(x.title||'Restaurant food')}"><div class="hero-live-content"><div class="hero-live-kicker">${esc(x.kicker||'')}</div><h1 class="hero-live-title">${highlightTitle(x.title||'')}</h1><p class="hero-live-subtitle">${esc(x.subtitle||'')}</p><div class="hero-live-actions"><a class="hero-live-primary" href="${esc(safeLink(x.primaryButtonLink))}">${esc(x.primaryButtonText||'Explore Menu')} ↗</a><a class="hero-live-secondary" href="${esc(safeLink(x.secondaryButtonLink))}">${esc(x.secondaryButtonText||'Order Now')}</a></div></div></section>`).join('')}</div><button class="hero-live-nav hero-live-prev" type="button" aria-label="Previous hero slide">‹</button><button class="hero-live-nav hero-live-next" type="button" aria-label="Next hero slide">›</button><div class="hero-live-dots" aria-label="Hero slide navigation"></div><div class="hero-live-count" aria-live="polite"></div><div class="hero-live-progress"><span></span></div>`;
+    hero.innerHTML=`<div class="hero-live-track">${slides.map((x,i)=>`<section class="hero-live-slide${i===0?' active':''}" aria-hidden="${i===0?'false':'true'}"><img src="${esc(x.imageUrl||defaults[(x.slideNo||1)-1].imageUrl)}" alt="${esc(x.title||'Restaurant food')}"><div class="hero-live-content"><div class="hero-live-kicker">${esc(x.kicker||'')}</div><h1 class="hero-live-title">${highlightTitle(x.title||'')}</h1><p class="hero-live-subtitle">${esc(x.subtitle||'')}</p><div class="hero-live-actions"><a class="hero-live-primary" href="${esc(safeLink(x.primaryButtonLink))}">${esc(x.primaryButtonText||'Explore Menu')} ↗</a><a class="hero-live-secondary" href="${esc(safeLink(x.secondaryButtonLink))}">${esc(x.secondaryButtonText||'Order Now')}</a></div></div></section>`).join('')}</div><div class="hero-fire-glow"></div><div class="hero-fire"></div><button class="hero-live-nav hero-live-prev" type="button" aria-label="Previous hero slide">‹</button><button class="hero-live-nav hero-live-next" type="button" aria-label="Next hero slide">›</button><div class="hero-live-dots" aria-label="Hero slide navigation"></div><div class="hero-live-count" aria-live="polite"></div><div class="hero-live-progress"><span></span></div>`;
 
     const nodes=[...hero.querySelectorAll('.hero-live-slide')];
     const dotsWrap=hero.querySelector('.hero-live-dots');
