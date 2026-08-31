@@ -50,7 +50,7 @@ function wrappedExpress(...args){
   app.get('/admin',(req,res)=>{
     const file=path.join(__dirname,'public','admin.html');
     let html=fs.readFileSync(file,'utf8');
-    html=html.replace('</body>','<script src="/admin-content.js"></script><script src="/admin-category.js"></script><script src="/admin-image-fix.js"></script></body>');
+    html=html.replace('</body>','<script src="/admin-content.js"></script><script src="/admin-deals-style.js"></script><script src="/admin-category.js"></script><script src="/admin-image-fix.js"></script></body>');
     res.set('Cache-Control','no-store');
     res.type('html').send(html);
   });
