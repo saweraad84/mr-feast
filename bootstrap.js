@@ -22,7 +22,7 @@ function wrappedExpress(...args){
   app.get('/',(req,res)=>{
     const file=path.join(__dirname,'public','index.html');
     let html=fs.readFileSync(file,'utf8');
-    html=html.replace('</body>','<script src="/slider-live.js"></script><script src="/hero-live.js"></script><script src="/content-live.js"></script><script src="/category-live.js"></script><script src="/location-map.js"></script></body>');
+    html=html.replace('</body>','<script src="/slider-live.js"></script><script src="/hero-live.js"></script><script src="/content-live.js"></script><script src="/category-live.js"></script><script src="/category-style.js"></script><script src="/location-map.js"></script></body>');
     res.type('html').send(html);
   });
   app.get('/admin',(req,res)=>{
