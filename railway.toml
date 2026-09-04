@@ -1,0 +1,5 @@
+[deploy]
+startCommand = "node email-admin-wrapper.js"
+healthcheckPath = "/health"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
