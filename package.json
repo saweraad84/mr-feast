@@ -1,1 +1,1 @@
-{"name":"mr-feast","version":"1.0.0","private":true,"scripts":{"start":"node server-ai.js"},"dependencies":{"express":"^4.21.2","multer":"^1.4.5-lts.1","pg":"^8.13.1"}}
+{"name":"mr-feast","version":"1.0.0","private":true,"scripts":{"start":"node reservation-wrapper.js"},"dependencies":{"express":"^4.21.2","multer":"^1.4.5-lts.1","pg":"^8.13.1"}}
