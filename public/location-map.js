@@ -12,7 +12,7 @@
   card.innerHTML=`
     <div><span aria-hidden="true">📍</span><b>Location</b><p>${displayAddress}<br><small>${address}</small></p></div>
     <div><span aria-hidden="true">🕐</span><b>Opening Hours</b><p>Fast Food: 12 PM – 1 AM<br>BBQ: 6 PM – 3 AM</p></div>
-    <div><span aria-hidden="true">💬</span><b>WhatsApp</b><p>Add your restaurant WhatsApp number</p></div>
+    <div><span aria-hidden="true">🛒</span><b>Online Ordering</b><p>Add items to cart and checkout directly on the website.</p></div>
     <div class="contact-map-wrap">
       <iframe title="Mehfil-e-Zaika location map" src="${embedLink}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
     </div>
