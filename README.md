@@ -19,4 +19,4 @@ This branch is reserved exclusively for Mehfil-e-Zaika. Do not mix files from an
 
 Kitchen Dashboard is enabled in the admin panel.
 
-Deployment sync marker: kitchen-dashboard-live.
+Deployment sync marker: kitchen-dashboard-live-2.
