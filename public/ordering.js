@@ -2,7 +2,7 @@
 const money=n=>'Rs. '+Number(n||0).toLocaleString('en-PK');
 const priceNumber=v=>Number(String(v||'').replace(/[^0-9]/g,''))||0;
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let menu=[];let cart={};
+let menu=Array.isArray(window.__mehfilMenu)?window.__mehfilMenu:[];let cart={};
 try{cart=JSON.parse(localStorage.getItem('mehfilCart')||'{}')||{}}catch(e){cart={}}
 const save=()=>{localStorage.setItem('mehfilCart',JSON.stringify(cart));renderCart()};
 const style=document.createElement('style');style.textContent=`
@@ -21,5 +21,6 @@ function add(item){const id=String(item.id);if(!cart[id])cart[id]={id:item.id,na
 window.MehfilOrder={setMenu(rows){menu=rows||[]},addById(id){const x=menu.find(m=>String(m.id)===String(id));if(x)add(x)},open(){back.style.display='block';renderCart()}};
 fab.onclick=window.MehfilOrder.open;document.getElementById('closeCart').onclick=()=>back.style.display='none';back.onclick=e=>{if(e.target===back)back.style.display='none'};
 document.addEventListener('click',e=>{const b=e.target.closest('.addcart');if(b){e.preventDefault();window.MehfilOrder.addById(b.dataset.id)}});
-document.querySelectorAll('a[href="#order"],a[href="#menu"]').forEach(a=>{if(/order/i.test(a.textContent||''))a.addEventListener('click',e=>{e.preventDefault();window.MehfilOrder.open()})});renderCart();
+document.querySelectorAll('a[href="#order"],a[href="#menu"]').forEach(a=>{if(/order/i.test(a.textContent||''))a.addEventListener('click',e=>{e.preventDefault();window.MehfilOrder.open()})});
+if(!menu.length)fetch('/api/menu-items').then(r=>r.ok?r.json():[]).then(rows=>{if(Array.isArray(rows))menu=rows}).catch(()=>{});renderCart();
 })();
