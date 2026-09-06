@@ -45,7 +45,7 @@ function wrappedExpress(...args){
     const file=path.join(__dirname,'public','index.html');
     let html=fs.readFileSync(file,'utf8');
     html=await applySavedCategoryImages(html);
-    html=html.replace('</body>','<script src="/slider-live.js"></script><script src="/hero-live.js"></script><script src="/content-live.js"></script><script src="/ordering.js"></script><script src="/category-live.js"></script><script src="/category-style.js"></script><script src="/location-map.js"></script></body>');
+    html=html.replace('</body>','<script src="/slider-live.js"></script><script src="/hero-live.js"></script><script src="/content-live.js"></script><script src="/ordering.js"></script><script src="/category-live.js"></script><script src="/category-style.js"></script><script src="/location-map.js"></script><script src="/site-cleanup.js"></script></body>');
     res.set('Cache-Control','no-store');
     res.type('html').send(html);
   });
