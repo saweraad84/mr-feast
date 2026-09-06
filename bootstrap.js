@@ -6,6 +6,7 @@ const {Pool}=require('pg');
 const realExpress=require('express');
 const setupContentApi=require('./content-api');
 const setupCategoryApi=require('./category-api');
+const setupKitchenApi=require('./kitchen-api');
 
 function wrappedExpress(...args){
   const app=realExpress(...args);
@@ -18,6 +19,7 @@ function wrappedExpress(...args){
 
   setupContentApi(app,pool,requireAdmin,upload);
   setupCategoryApi(app,pool,requireAdmin,upload);
+  setupKitchenApi(app,pool,requireAdmin);
 
   async function applySavedCategoryImages(html){
     if(!process.env.DATABASE_URL)return html;
@@ -50,7 +52,7 @@ function wrappedExpress(...args){
   app.get('/admin',(req,res)=>{
     const file=path.join(__dirname,'public','admin.html');
     let html=fs.readFileSync(file,'utf8');
-    html=html.replace('</body>','<script src="/admin-content.js"></script><script src="/admin-deals-style.js"></script><script src="/admin-category.js"></script><script src="/admin-image-fix.js"></script></body>');
+    html=html.replace('</body>','<script src="/admin-kitchen.js"></script><script src="/admin-content.js"></script><script src="/admin-deals-style.js"></script><script src="/admin-category.js"></script><script src="/admin-image-fix.js"></script></body>');
     res.set('Cache-Control','no-store');
     res.type('html').send(html);
   });
