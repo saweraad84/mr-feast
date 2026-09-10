@@ -1,0 +1,27 @@
+.grid{display:flex;flex-direction:column;gap:8px}
+.calendar-week-row{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.day{position:relative;min-width:0;cursor:pointer}
+.day.expanded{border-color:#6b1f2b;box-shadow:0 0 0 2px #d7b36a}
+.date-toggle{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent;cursor:pointer;border-radius:10px}
+.day:focus-within{outline:2px solid #d7b36a;outline-offset:2px}
+.date-num,.empty{pointer-events:none}
+.bookings{display:flex;flex-direction:column;gap:3px}
+.booking{position:relative;z-index:1;display:block;width:100%;margin:0;padding:4px 2px;min-width:0;border:0;border-left:3px solid #6b1f2b;color:#6b1f2b;font-weight:700;font-family:inherit;font-size:11px;cursor:pointer;overflow-wrap:anywhere}
+.booking:hover,.booking:focus-visible{background:#e6c8b5;outline:2px solid #6b1f2b}
+.date-details{padding:18px;background:#34282a;border:1px solid #d7b36a;border-radius:12px;animation:expand-details .2s ease-out}
+.details-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.details-heading h3{margin:0;color:#d7b36a}
+.date-details button{background:#6b1f2b;color:#fff;border:1px solid #bd8790;border-radius:8px;padding:9px 12px;cursor:pointer}
+.details-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px}
+.reservation-detail{min-width:0;background:#241f20;border-radius:10px;padding:16px}
+.reservation-detail h4{margin:0;color:#d7b36a}
+.reservation-detail dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;font-size:13px}
+.reservation-detail dt{color:#d8c8bd;font-size:11px;margin-bottom:4px}
+.reservation-detail dd{margin:0;overflow-wrap:anywhere;white-space:pre-wrap}
+#rows tr{scroll-margin:30px}
+#rows tr.highlighted{background:#68412d;outline:2px solid #d7b36a;outline-offset:-2px}
+@keyframes expand-details{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:900px){.calendar-week-row{gap:4px}.grid{gap:4px}}
+@media(max-width:540px){body{padding:8px}.calendar{padding:8px}.day{padding:4px 1px;min-height:86px;border-radius:6px}.booking{font-size:9px;border-left-width:2px;letter-spacing:-.4px;padding:5px 0}.empty{font-size:9px;overflow-wrap:anywhere}.date-details{padding:12px}.details-heading{align-items:flex-start}.details-heading h3{font-size:15px}.cal-head h2{font-size:20px}.table-wrap{padding:10px}.reservation-detail{padding:12px}}
+@media(prefers-reduced-motion:reduce){.date-details{animation:none}}
+
