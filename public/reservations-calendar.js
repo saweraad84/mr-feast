@@ -26,7 +26,7 @@
       const j=await r.json().catch(()=>({}));
       if(!r.ok){msg.textContent=j.error||'Wrong password';return}
       $('gate').style.display='none';
-      $('app').style.display='block';
+      $('app').style.display='grid';
       msg.textContent='';
       await load();
     }catch(e){msg.textContent='Could not sign in. Please try again.'}
@@ -35,7 +35,7 @@
   async function restoreSession(){
     try{
       const r=await fetch('/api/admin/status',{cache:'no-store'}),j=await r.json();
-      if(j.authenticated){$('gate').style.display='none';$('app').style.display='block';await load()}
+      if(j.authenticated){$('gate').style.display='none';$('app').style.display='grid';await load()}
     }catch{}
   }
 
