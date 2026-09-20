@@ -1,11 +1,109 @@
-const items=['Classic Burger','Zinger Burger','Chicken Pizza','Chicken Shawarma','Fries','Club Sandwich','Chicken Tikka','Malai Boti','Seekh Kebab','Chicken Wings','BBQ Platters','Gulab Jamun','Rasmalai','Kheer','Brownies','Ice Cream','Chocolate Lava Cake','Cheesecake','Waffles','Sundaes'];items.forEach(x=>item.add(new Option(x,x)));const $=id=>document.getElementById(id);const emailKeys=['customer_subject','customer_title','customer_greeting','customer_intro','customer_total_label','customer_footer','customer_signoff','restaurant_subject','restaurant_title','restaurant_intro','restaurant_footer','email_header_color','email_accent_color','email_gold_color','email_background_color','email_card_color'];function show(ok){$('loginCard').style.display=ok?'none':'block';$('manager').style.display=ok?'block':'none';$('logout').style.display=ok?'block':'none';if(ok){loadReservations();loadReservationSettings();loadOrderEmail();loadEmailTemplate();loadDeals();loadReviews()}}fetch('/api/admin/status').then(r=>r.json()).then(x=>show(x.authenticated));$('eye').onclick=()=>{$('password').type=$('password').type==='password'?'text':'password';$('eye').textContent=$('password').type==='password'?'👁':'🙈'};async function login(){const r=await fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:$('password').value.trim()})});const j=await r.json();if(r.ok){show(true);$('loginStatus').textContent=''}else $('loginStatus').textContent=j.error||'Login failed'}$('login').onclick=login;$('password').onkeydown=e=>{if(e.key==='Enter')login()};$('logout').onclick=async()=>{await fetch('/api/admin/logout',{method:'POST'});show(false)};
-async function loadReservationSettings(){try{const r=await fetch('/api/admin/reservation-settings'),j=await r.json();if(!r.ok)throw new Error(j.error);$('reservationTableCount').value=j.table_count;$('reservationChairs').value=j.chairs_per_table;$('reservationDuration').value=j.duration_minutes;$('reservationSettingsStatus').textContent=`Capacity: ${j.table_count*j.chairs_per_table} guests · ${j.table_count} tables × ${j.chairs_per_table} chairs.`}catch(e){$('reservationSettingsStatus').textContent=e.message||'Could not load reservation settings'}}
-$('saveReservationSettings').onclick=async()=>{const r=await fetch('/api/admin/reservation-settings',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({table_count:$('reservationTableCount').value,chairs_per_table:$('reservationChairs').value,duration_minutes:$('reservationDuration').value})}),j=await r.json();$('reservationSettingsStatus').textContent=r.ok?`Saved. Capacity is ${j.table_count*j.chairs_per_table} guests.`:(j.error||'Could not save settings')};
-function safe(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-async function loadReservations(){try{const r=await fetch('/api/admin/reservations'),a=await r.json();if(!r.ok)throw new Error(a.error);$('reservationList').innerHTML=a.length?a.map(x=>`<div class="reservation" data-id="${x.id}"><div class="line"><div><b>Reservation #${x.id} · ${safe(x.customer_name)}</b><div class="reservation-meta">${safe(String(x.reservation_date).slice(0,10))} at ${safe(String(x.reservation_time).slice(0,5))} · <b>${x.party_size} guests</b> · ${x.tables_used} table${x.tables_used===1?'':'s'} (${(x.table_ids||[]).join(', ')})<br>${safe(x.phone)} · ${safe(x.email||'No email')}<br>Source: ${safe(x.source)}${x.special_requests?` · Request: ${safe(x.special_requests)}`:''}</div></div><span class="badge">${safe(x.status)}</span></div><label>Status<select class="reservationStatus"><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="seated">Seated</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></label><button class="saveReservationStatus">Update Status</button></div>`).join(''):'<p class="muted">No reservations yet.</p>';document.querySelectorAll('.reservation').forEach(el=>el.querySelector('.reservationStatus').value=a.find(x=>String(x.id)===el.dataset.id)?.status||'pending')}catch(e){$('reservationList').innerHTML=`<p>${safe(e.message||'Could not load reservations')}</p>`}}
-$('refreshReservations').onclick=loadReservations;$('reservationList').onclick=async e=>{if(!e.target.classList.contains('saveReservationStatus'))return;const box=e.target.closest('.reservation');const r=await fetch('/api/admin/reservations/'+box.dataset.id+'/status',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:box.querySelector('.reservationStatus').value})});if(r.ok)loadReservations()};
-async function loadOrderEmail(){const status=$('orderEmailStatus');status.textContent='Loading…';try{const r=await fetch('/api/admin/order-email');const j=await r.json();if(!r.ok)throw new Error(j.error||'Could not load email');$('orderEmail').value=j.email||'';status.textContent=j.email?'Current order email loaded.':'No restaurant order email is configured.'}catch(e){status.textContent=e.message}}$('saveOrderEmail').onclick=async()=>{const email=$('orderEmail').value.trim();const status=$('orderEmailStatus');status.textContent='Saving…';const r=await fetch('/api/admin/order-email',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});const j=await r.json();status.textContent=r.ok?`Saved: ${j.email}`:(j.error||'Could not save email')};$('removeOrderEmail').onclick=async()=>{if(!confirm('Remove the restaurant order email?'))return;const r=await fetch('/api/admin/order-email',{method:'DELETE'});if(r.ok){$('orderEmail').value='';$('orderEmailStatus').textContent='Restaurant order email removed.'}};
-function fillPreview(v){return String(v||'').replaceAll('{order_id}','15').replaceAll('{customer_name}','Customer').replaceAll('{phone}','0312 1234567').replaceAll('{email}','customer@example.com').replaceAll('{total}','1050')}function updatePreview(){$('previewHead').style.background=$('email_header_color').value||'#171717';$('previewBrand').style.color=$('email_gold_color').value||'#C9A45C';$('previewTitle').textContent=fillPreview($('customer_title').value)||'Order Confirmed';$('previewGreeting').textContent=fillPreview($('customer_greeting').value)||'Thank you for your order, Customer.';$('previewIntro').textContent=fillPreview($('customer_intro').value)||'Your order has been received.';$('previewTotal').textContent=`${fillPreview($('customer_total_label').value)||'Estimated total'}: Rs. 1050`;$('emailPreview').style.background=$('email_card_color').value||'#fff';$('previewFoot').style.background=$('email_accent_color').value||'#6B1F2B';$('previewFoot').textContent=fillPreview($('customer_signoff').value)||'Mr. Feast'}async function loadEmailTemplate(){try{const r=await fetch('/api/admin/email-template'),j=await r.json();emailKeys.forEach(k=>{if($(k)&&j[k]!=null)$(k).value=j[k]});updatePreview();$('emailTemplateStatus').textContent=r.ok?'Email design loaded.':(j.error||'Could not load email design')}catch(e){$('emailTemplateStatus').textContent=e.message}}emailKeys.forEach(k=>{if($(k))$(k).addEventListener('input',updatePreview)});$('saveEmailTemplate').onclick=async()=>{const body={};emailKeys.forEach(k=>body[k]=$(k).value);const r=await fetch('/api/admin/email-template',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}),j=await r.json();$('emailTemplateStatus').textContent=r.ok?'Email design saved. New orders will use this design.':(j.error||'Could not save email design')};$('resetEmailTemplate').onclick=async()=>{if(!confirm('Restore the default Mr. Feast email design and text?'))return;const r=await fetch('/api/admin/email-template/reset',{method:'POST'}),j=await r.json();if(r.ok){emailKeys.forEach(k=>{if(j.settings?.[k]!=null)$(k).value=j.settings[k]});updatePreview();$('emailTemplateStatus').textContent='Default email design restored.'}};
-$('save').onclick=async()=>{const f=$('image').files[0];if(!f)return $('saveStatus').textContent='Choose a picture first';const fd=new FormData();fd.append('item',$('item').value);fd.append('image',f);const r=await fetch('/api/admin/image',{method:'POST',body:fd});$('saveStatus').textContent=r.ok?'Picture updated.':'Upload failed'};$('reset').onclick=async()=>{const r=await fetch('/api/admin/image/'+encodeURIComponent($('item').value),{method:'DELETE'});$('saveStatus').textContent=r.ok?'Original restored.':'Reset failed'};
-async function loadDeals(){const a=await fetch('/api/admin/deals').then(r=>r.json());$('dealList').innerHTML=a.map(d=>`<div class="deal" data-id="${d.id}"><div class="line"><div><b>${safe(d.name)}</b><div>Rs. ${d.price} · ${safe(d.description)}</div></div>${d.has_image?`<img src="/api/deal-image/${d.id}?v=${Date.now()}">`:''}</div><div class="grid"><label>Name<input class="n" value="${safe(d.name)}"></label><label>Price<input class="p" type="number" value="${d.price}"></label><label>Description<textarea class="d">${safe(d.description)}</textarea></label><label>Replace picture<input class="i" type="file" accept="image/*"></label></div><div class="actions"><button class="edit">Save changes</button><button class="danger del">Delete</button></div></div>`).join('')}$('addDeal').onclick=async()=>{const fd=new FormData();fd.append('name',$('dealName').value);fd.append('price',$('dealPrice').value);fd.append('description',$('dealDesc').value);fd.append('position',999);if($('dealImage').files[0])fd.append('image',$('dealImage').files[0]);const r=await fetch('/api/admin/deals',{method:'POST',body:fd});if(r.ok)loadDeals()};$('dealList').onclick=async e=>{const box=e.target.closest('.deal');if(!box)return;const id=box.dataset.id;if(e.target.classList.contains('del')){if(confirm('Delete this deal?')){await fetch('/api/admin/deals/'+id,{method:'DELETE'});loadDeals()}}if(e.target.classList.contains('edit')){const fd=new FormData();fd.append('name',box.querySelector('.n').value);fd.append('price',box.querySelector('.p').value);fd.append('description',box.querySelector('.d').value);fd.append('position',999);fd.append('active','true');if(box.querySelector('.i').files[0])fd.append('image',box.querySelector('.i').files[0]);await fetch('/api/admin/deals/'+id,{method:'PUT',body:fd});loadDeals()}};
-async function loadReviews(){const a=await fetch('/api/admin/reviews').then(r=>r.json());$('reviewList').innerHTML=a.map(x=>`<div class="review" data-id="${x.id}"><b>${safe(x.customer_name)} · ${'★'.repeat(x.rating)}</b><p>${safe(x.review_text)}</p><button class="danger delreview">Remove</button></div>`).join('')}$('addReview').onclick=async()=>{const r=await fetch('/api/admin/reviews',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({customer_name:$('reviewName').value,rating:$('reviewRating').value,review_text:$('reviewText').value})});if(r.ok)loadReviews()};$('reviewList').onclick=async e=>{if(!e.target.classList.contains('delreview'))return;await fetch('/api/admin/reviews/'+e.target.closest('.review').dataset.id,{method:'DELETE'});loadReviews()};
+var $=function(id){return document.getElementById(id)};
+var safe=function(v){return String(v==null?'':v).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]})};
+var setStatus=function(id,text){var el=$(id);if(el)el.textContent=text||''};
+var weekdayIds=['resSun','resMon','resTue','resWed','resThu','resFri','resSat'];
+var closedDates=[];
+function pkToday(){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Karachi',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())}
+function activatePanel(name){
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.toggle('active',p.id==='panel-'+name)});
+  document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.toggle('active',b.dataset.panel===name)});
+  var active=document.querySelector('.nav-btn[data-panel="'+name+'"]');
+  $('panelTitle').textContent=active?active.textContent:'Mr. Feast Admin';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+document.querySelectorAll('.nav-btn').forEach(function(b){b.addEventListener('click',function(){activatePanel(b.dataset.panel)})});
+async function show(ok){
+  $('loginCard').style.display=ok?'none':'block';
+  $('manager').style.display=ok?'grid':'none';
+  if(!ok)return;
+  await Promise.allSettled([loadRestaurantStatus(),loadReservationSettings()]);
+  if(window.loadReservationEmailAdmin)window.loadReservationEmailAdmin();
+  if(window.loadCommerceAdmin)window.loadCommerceAdmin();
+}
+async function login(){
+  setStatus('loginStatus','Signing in…');
+  try{
+    var r=await fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:$('password').value.trim()})});
+    var j=await r.json().catch(function(){return {}});
+    if(!r.ok){setStatus('loginStatus',j.error||'Login failed');return}
+    setStatus('loginStatus','');await show(true);
+  }catch(e){setStatus('loginStatus','Could not sign in')}
+}
+$('login').onclick=login;
+$('password').onkeydown=function(e){if(e.key==='Enter')login()};
+$('eye').onclick=function(){$('password').type=$('password').type==='password'?'text':'password';$('eye').textContent=$('password').type==='password'?'👁':'🙈'};
+$('logout').onclick=async function(){await fetch('/api/admin/logout',{method:'POST'});show(false)};
+fetch('/api/admin/status',{cache:'no-store'}).then(function(r){return r.json()}).then(function(x){show(!!x.authenticated)}).catch(function(){show(false)});
+async function loadRestaurantStatus(){
+  try{
+    var r=await fetch('/api/admin/restaurant-status',{cache:'no-store'}),j=await r.json();
+    if(!r.ok)throw new Error(j.error||'Could not load restaurant status');
+    var badge=$('restaurantStateBadge');badge.textContent=j.open?'RESTAURANT OPEN':'RESTAURANT CLOSED';badge.className='state-pill '+(j.open?'open':'closed');
+    $('overviewRestaurantState').textContent=j.open?'Open':'Closed';
+    setStatus('restaurantControlStatus',j.open?'Restaurant is open for orders.':'Restaurant is closed'+(j.reason?' · '+j.reason:''));
+    $('openRestaurant').disabled=!!j.open;$('closeRestaurant').disabled=!j.open;
+    return j;
+  }catch(e){setStatus('restaurantControlStatus',e.message);throw e}
+}
+$('closeRestaurant').onclick=async function(){
+  var reason=$('restaurantCloseReason').value.trim()||'an emergency or unexpected operational issue';
+  if(!confirm('Close the restaurant now? This will cancel upcoming pending/confirmed reservations and active Queue/Cooking/Ready orders, then email affected customers if closure emails are enabled.'))return;
+  setStatus('restaurantControlStatus','Closing restaurant, cancelling active bookings and sending customer emails…');$('closeRestaurant').disabled=true;
+  try{
+    var r=await fetch('/api/admin/restaurant-close',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reason:reason})}),j=await r.json();
+    if(!r.ok)throw new Error(j.error||'Could not close restaurant');
+    setStatus('restaurantControlStatus','Restaurant CLOSED.');
+    var box=$('restaurantCloseSummary');box.style.display='block';
+    box.innerHTML='<b>Closure complete</b><br>Reservations cancelled: '+Number(j.reservations_cancelled||0)+'<br>Orders cancelled: '+Number(j.orders_cancelled||0)+'<br>Emails sent: '+Number(j.emails_sent||0)+' · Failed: '+Number(j.emails_failed||0)+' · Skipped: '+Number(j.emails_skipped||0);
+    await Promise.allSettled([loadRestaurantStatus(),loadReservationSettings()]);
+  }catch(e){setStatus('restaurantControlStatus',e.message);$('closeRestaurant').disabled=false}
+};
+$('openRestaurant').onclick=async function(){
+  if(!confirm('Reopen Mr. Feast for new orders? Reservation availability will return to the setting it had before the emergency closure.'))return;
+  setStatus('restaurantControlStatus','Reopening restaurant…');
+  try{
+    var r=await fetch('/api/admin/restaurant-open',{method:'POST'}),j=await r.json();
+    if(!r.ok)throw new Error(j.error||'Could not reopen restaurant');
+    $('restaurantCloseReason').value='';$('restaurantCloseSummary').style.display='none';setStatus('restaurantControlStatus','Restaurant is OPEN again.');
+    await Promise.allSettled([loadRestaurantStatus(),loadReservationSettings()]);
+  }catch(e){setStatus('restaurantControlStatus',e.message)}
+};
+function drawClosedDates(){
+  var box=$('closedDateChips');
+  box.innerHTML=closedDates.length?closedDates.map(function(d){return '<button type="button" class="action-btn date-chip" data-date="'+safe(d)+'">'+safe(d)+' ×</button>'}).join(''):'<span class="muted">No specific closed dates selected.</span>';
+}
+$('closedDatePicker').min=pkToday();
+$('addClosedDate').onclick=function(){var d=$('closedDatePicker').value;if(d&&closedDates.indexOf(d)===-1){closedDates.push(d);closedDates.sort();drawClosedDates()}$('closedDatePicker').value=''};
+$('closedDateChips').onclick=function(e){var d=e.target.dataset.date;if(!d)return;closedDates=closedDates.filter(function(x){return x!==d});drawClosedDates()};
+async function loadReservationSettings(){
+  try{
+    var r=await fetch('/api/admin/reservation-settings',{cache:'no-store'}),j=await r.json();
+    if(!r.ok)throw new Error(j.error||'Could not load reservation settings');
+    $('reservationTableCount').value=j.table_count||5;$('reservationChairs').value=j.chairs_per_table||4;$('reservationEnabled').value=j.enabled?'open':'closed';
+    $('reservationOpenTime').value=j.open_time||'00:00';$('reservationCloseTime').value=j.close_time||'23:59';
+    var closed=new Set((j.closed_weekdays||[]).map(Number));weekdayIds.forEach(function(id,i){$(id).checked=closed.has(i)});
+    closedDates=(j.closed_dates||[]).slice();drawClosedDates();
+    var capacity=Number(j.table_count||5)*Number(j.chairs_per_table||4);
+    setStatus('reservationSettingsStatus','Capacity: '+capacity+' guests · '+j.table_count+' tables × '+j.chairs_per_table+' chairs.');
+    setStatus('reservationScheduleStatus',j.enabled?'Reservations OPEN · '+j.open_time+'–'+j.close_time:'Reservations are CLOSED');
+    $('overviewCapacity').textContent=capacity+' guests';$('overviewReservationState').textContent=j.enabled?'Open':'Closed';return j;
+  }catch(e){setStatus('reservationSettingsStatus',e.message);setStatus('reservationScheduleStatus',e.message);throw e}
+}
+$('saveReservationSettings').onclick=async function(){
+  setStatus('reservationSettingsStatus','Saving…');
+  try{
+    var r=await fetch('/api/admin/reservation-settings',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({table_count:$('reservationTableCount').value,chairs_per_table:$('reservationChairs').value})}),j=await r.json();
+    if(!r.ok)throw new Error(j.error||'Could not save capacity');
+    var capacity=Number(j.table_count)*Number(j.chairs_per_table);setStatus('reservationSettingsStatus','Saved. Capacity: '+capacity+' guests.');$('overviewCapacity').textContent=capacity+' guests';
+  }catch(e){setStatus('reservationSettingsStatus',e.message)}
+};
+$('saveReservationSchedule').onclick=async function(){
+  setStatus('reservationScheduleStatus','Saving schedule…');
+  var closed=weekdayIds.map(function(id,i){return $(id).checked?i:null}).filter(function(v){return v!==null});
+  var body={enabled:$('reservationEnabled').value==='open',open_time:$('reservationOpenTime').value,close_time:$('reservationCloseTime').value,closed_weekdays:closed,closed_dates:closedDates};
+  try{
+    var r=await fetch('/api/admin/reservation-settings',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}),j=await r.json();
+    if(!r.ok)throw new Error(j.error||'Could not save schedule');
+    setStatus('reservationScheduleStatus',j.enabled?'Saved · OPEN '+j.open_time+'–'+j.close_time:'Saved · Reservations CLOSED.');$('overviewReservationState').textContent=j.enabled?'Open':'Closed';
+  }catch(e){setStatus('reservationScheduleStatus',e.message)}
+};
