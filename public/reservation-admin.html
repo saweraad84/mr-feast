@@ -1,7 +1,56 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mr. Feast Reservation Admin</title>
-<style>:root{--black:#111;--wine:#6B1F2B;--gold:#C9A45C;--cream:#F5EFE6;--card:#FFF9F2;--line:#e3d7c5;--muted:#756960}*{box-sizing:border-box}body{margin:0;background:var(--cream);color:#1b1817;font-family:Arial,Helvetica,sans-serif}.login{max-width:430px;margin:10vh auto;background:#fff;padding:26px;border-radius:18px;border:1px solid var(--line)}input,select,button{font:inherit}.login input,.login button{width:100%;padding:12px;margin:7px 0;border-radius:9px;border:1px solid var(--line)}button{cursor:pointer}.primary{background:var(--wine);color:#fff;border:0;font-weight:800}.wrap{max-width:1450px;margin:auto;padding:24px}.top{display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap}.brand{font-size:27px;font-weight:900}.brand b{color:var(--wine)}.links{display:flex;gap:8px;flex-wrap:wrap}.links a{background:var(--black);color:#fff;text-decoration:none;padding:10px 12px;border-radius:9px;font-weight:800}.toolbar{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin:20px 0;display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px;align-items:end}.toolbar label{font-size:12px;font-weight:800}.toolbar input,.toolbar select{width:100%;padding:10px;border:1px solid var(--line);border-radius:9px;margin-top:5px}.toolbar button{padding:11px 14px;border:0;border-radius:9px;background:var(--wine);color:#fff;font-weight:800}.summary{color:var(--muted);margin:8px 0 16px}.list{display:grid;gap:14px}.reservation{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px}.reservation-head{display:flex;justify-content:space-between;gap:14px;align-items:start}.reservation-head h3{margin:0;color:var(--wine)}.time{font-weight:900}.details{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:15px}.field{background:var(--card);border:1px solid #eee2d0;border-radius:10px;padding:10px;min-width:0}.field small{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}.field div{overflow-wrap:anywhere}.status-select{min-width:150px;padding:9px;border:1px solid var(--line);border-radius:9px;background:#fff;font-weight:800}.save-state{font-size:11px;color:var(--muted);margin-top:5px;text-align:right}.error{color:#9a3333}.ok{color:#2f7d4a}.empty{background:#fff;border:1px solid var(--line);border-radius:14px;padding:30px;text-align:center;color:var(--muted)}@media(max-width:1000px){.details{grid-template-columns:repeat(2,minmax(0,1fr))}.toolbar{grid-template-columns:1fr 1fr}.reservation-head{flex-direction:column}.save-state{text-align:left}}@media(max-width:600px){.wrap{padding:12px}.details,.toolbar{grid-template-columns:1fr}}</style></head>
-<body><div id="gate" class="login"><div class="brand"><b>MR.</b> FEAST</div><h2>Reservation Admin Login</h2><input id="pw" type="password" placeholder="Admin password" autocomplete="current-password"><button id="go" class="primary">Login</button><p id="msg"></p></div>
-<main id="app" style="display:none"><div class="wrap"><div class="top"><div><div class="brand"><b>MR.</b> FEAST RESERVATIONS</div><div id="status" class="summary">Loading reservations…</div></div><div class="links"><a href="/admin.html">Main Admin</a><a href="/reservations-calendar.html">Calendar</a><a href="/">Website</a></div></div>
-<div class="toolbar"><label>Search<input id="search" placeholder="Name, phone, email, reservation ID"></label><label>Status<select id="statusFilter"><option value="">All statuses</option><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="seated">Seated</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></label><label>Date<input id="dateFilter" type="date"></label><button id="refresh">Refresh</button></div><div id="list" class="list"></div></div></main>
-<script src="/reservation-admin.js"></script></body></html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mr. Feast Reservation Admin</title>
+<style>
+:root{--bg:#070808;--surface:#121315;--surface2:#17181b;--border:#2a2d31;--border2:#363940;--text:#f4f1eb;--muted:#aaa29a;--gold:#d7ad45;--gold2:#f0cd74;--wine:#8e2638;--wine2:#6c1d2c;--green:#2f7d4a;--danger:#9e3342}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif}button,input,select{font:inherit}button{cursor:pointer}
+.brand{display:flex;align-items:center;gap:12px;font-family:Georgia,'Times New Roman',serif;font-weight:800;color:var(--gold);font-size:19px}.brand:before{content:'MF';display:grid;place-items:center;width:43px;height:43px;border:1px solid var(--gold);border-radius:50%;font:800 14px Arial;letter-spacing:1px}
+.login-shell,.app-shell{min-height:100vh;display:grid;grid-template-columns:230px minmax(0,1fr)}
+.sidebar{background:linear-gradient(180deg,#090a0b,#0d0e10);border-right:1px solid var(--border);padding:28px 16px 20px;min-height:100vh}.sidebar small{display:block;margin:6px 0 0 55px;color:var(--gold);font-size:9px;font-weight:900;letter-spacing:2px}.side-rule{height:1px;background:var(--border);margin:26px 0 18px}.side-label{color:#7f8b9e;font-size:9px;font-weight:900;letter-spacing:2px;margin:0 7px 8px}.side-link{display:block;color:#eee;text-decoration:none;padding:11px 9px;border:1px solid transparent;border-radius:8px;font-size:13px;font-weight:800}.side-link:before{content:'•';color:var(--gold);margin-right:10px}.side-link:hover,.side-link.active{background:#111214;border-color:#191b1e}.stage{min-width:0;background:radial-gradient(circle at 80% 5%,rgba(142,38,56,.08),transparent 28%),var(--bg)}
+.topbar{height:86px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;background:#090a0b;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}.topbar h1{font-family:Georgia,'Times New Roman',serif;font-size:24px;margin:0 0 5px}.topbar p{margin:0;color:var(--muted);font-size:12px}.env-pill{border:1px solid var(--border2);background:#17181b;color:#eee;border-radius:999px;padding:8px 13px;font-size:11px;font-weight:900}
+.login-center{min-height:calc(100vh - 86px);display:grid;place-items:center;padding:36px}.login-card{width:min(520px,100%);background:linear-gradient(180deg,#18191c,#121315);border:1px solid var(--border2);border-radius:15px;padding:32px;box-shadow:0 18px 50px rgba(0,0,0,.28)}.login-card h2{font-family:Georgia,'Times New Roman',serif;font-size:34px;margin:0 0 12px}.login-card p{color:var(--muted)}.secure-note{border:1px solid var(--border2);border-radius:8px;padding:10px 12px;font-size:11px;color:#98a2b2;margin:17px 0}.login-card input{width:100%;padding:13px;border:1px solid var(--border2);border-radius:9px;background:#0d0f11;color:#fff;margin:8px 0}.login-card button{width:100%;padding:13px;border:1px solid #a33a4c;border-radius:8px;background:linear-gradient(180deg,#972b3e,#852235);color:#fff;font-weight:900}
+.workspace{padding:28px 30px 60px}.summary{color:var(--muted);font-size:12px;margin-top:6px}.toolbar{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:12px;align-items:end;background:linear-gradient(180deg,var(--surface2),var(--surface));border:1px solid var(--border2);border-radius:14px;padding:18px;margin-bottom:18px}.toolbar label{font-size:10px;letter-spacing:.5px;font-weight:900;text-transform:uppercase;color:#ddd7cf}.toolbar input,.toolbar select{width:100%;padding:11px 12px;border:1px solid var(--border2);border-radius:8px;background:#0c0e10;color:#fff;margin-top:6px}.toolbar button{padding:11px 16px;border:1px solid #a13a4b;border-radius:8px;background:linear-gradient(180deg,#972b3e,#852235);color:#fff;font-weight:900}
+.list{display:grid;gap:14px}.reservation{background:linear-gradient(180deg,var(--surface2),var(--surface));border:1px solid var(--border2);border-radius:14px;padding:18px}.reservation-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.reservation-head h3{font-family:Georgia,'Times New Roman',serif;margin:0 0 6px;color:var(--gold2);font-size:21px}.time{font-weight:900;color:#e9e4dc}.details{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:16px}.field{background:#0e1012;border:1px solid var(--border);border-radius:9px;padding:11px;min-width:0}.field small{display:block;color:#818995;font-size:9px;text-transform:uppercase;letter-spacing:.65px;margin-bottom:5px}.field div{overflow-wrap:anywhere}.status-select{min-width:150px;padding:9px;border:1px solid #6d5733;border-radius:8px;background:#0c0e10;color:#fff;font-weight:900}.save-state{font-size:10px;color:var(--muted);margin-top:5px;text-align:right}.error{color:#ef9aa8}.ok{color:#8fd2a6}.empty{background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:30px;text-align:center;color:var(--muted)}
+@media(max-width:1000px){.login-shell,.app-shell{grid-template-columns:1fr}.sidebar{display:none}.details{grid-template-columns:repeat(2,minmax(0,1fr))}.toolbar{grid-template-columns:1fr 1fr}.topbar{padding:0 18px}}@media(max-width:600px){.workspace{padding:18px 12px 40px}.details,.toolbar{grid-template-columns:1fr}.reservation-head{flex-direction:column}.save-state{text-align:left}.topbar h1{font-size:20px}}
+</style>
+</head>
+<body>
+<div id="gate" class="login-shell">
+  <aside class="sidebar">
+    <div class="brand">MR. FEAST</div><small>ADMIN CONTROL</small><div class="side-rule"></div>
+    <div class="side-label">WORKSPACE</div>
+    <span class="side-link active">Reservation Admin</span>
+    <a class="side-link" href="/reservations-calendar.html">Reservation Calendar</a>
+    <a class="side-link" href="/admin.html">Main Admin</a>
+    <a class="side-link" href="/">Live Website</a>
+  </aside>
+  <main class="stage">
+    <div class="topbar"><div><h1>Reservation Management</h1><p>Review and manage every table booking.</p></div><span class="env-pill">• Production</span></div>
+    <div class="login-center"><div class="login-card"><h2>Welcome back</h2><p>Sign in to manage reservations.</p><div class="secure-note">Secure admin access · Changes are applied to live reservation data.</div><input id="pw" type="password" placeholder="Enter admin password" autocomplete="current-password"><button id="go">Sign In</button><p id="msg"></p></div></div>
+  </main>
+</div>
+<main id="app" class="app-shell" style="display:none">
+  <aside class="sidebar">
+    <div class="brand">MR. FEAST</div><small>ADMIN CONTROL</small><div class="side-rule"></div>
+    <div class="side-label">WORKSPACE</div>
+    <span class="side-link active">Reservation Admin</span>
+    <a class="side-link" href="/reservations-calendar.html">Reservation Calendar</a>
+    <a class="side-link" href="/admin.html">Main Admin</a>
+    <a class="side-link" href="/kitchen">Kitchen Dashboard</a>
+    <a class="side-link" href="/owner">Owner Dashboard</a>
+    <a class="side-link" href="/">Live Website</a>
+  </aside>
+  <section class="stage">
+    <div class="topbar"><div><h1>Reservation Management</h1><div id="status" class="summary">Loading reservations…</div></div><span class="env-pill">• Production</span></div>
+    <div class="workspace">
+      <div class="toolbar"><label>Search<input id="search" placeholder="Name, phone, email, reservation ID"></label><label>Status<select id="statusFilter"><option value="">All statuses</option><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="seated">Seated</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></label><label>Date<input id="dateFilter" type="date"></label><button id="refresh">Refresh</button></div>
+      <div id="list" class="list"></div>
+    </div>
+  </section>
+</main>
+<script src="/reservation-admin.js"></script>
+</body>
+</html>
