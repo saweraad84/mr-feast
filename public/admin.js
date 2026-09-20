@@ -5,9 +5,12 @@ var weekdayIds=['resSun','resMon','resTue','resWed','resThu','resFri','resSat'];
 var closedDates=[];
 function pkToday(){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Karachi',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())}
 function setActiveAdminMenu(name){
-  document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.toggle('active',b.dataset.panel===name)});
-  var active=document.querySelector('.nav-btn[data-panel="'+name+'"]');
-  if($('panelTitle'))$('panelTitle').textContent=active?active.textContent:'Mr. Feast Admin';
+  document.querySelectorAll('.nav-btn').forEach(function(b){
+    var on=b.dataset.panel===name;
+    b.classList.toggle('active',on);
+    if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
+  });
+  if($('panelTitle'))$('panelTitle').textContent='Website Management';
 }
 function scrollToAdminPanel(name){
   var target=$('panel-'+name);
@@ -42,7 +45,7 @@ if(adminWorkspace)adminWorkspace.addEventListener('scroll',scheduleAdminMenuUpda
 window.addEventListener('scroll',scheduleAdminMenuUpdate,{passive:true});
 window.addEventListener('resize',scheduleAdminMenuUpdate);
 async function show(ok){
-  $('loginCard').style.display=ok?'none':'block';
+  $('loginCard').style.display=ok?'none':'grid';
   $('manager').style.display=ok?'grid':'none';
   if(!ok)return;
   await Promise.allSettled([loadRestaurantStatus(),loadReservationSettings()]);
