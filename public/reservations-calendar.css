@@ -25,3 +25,5 @@
 @media(max-width:540px){body{padding:8px}.calendar{padding:8px}.day{padding:4px 1px;min-height:86px;border-radius:6px}.booking{font-size:9px;border-left-width:2px;letter-spacing:-.4px;padding:5px 0}.empty{font-size:9px;overflow-wrap:anywhere}.date-details{padding:12px}.details-heading{align-items:flex-start}.details-heading h3{font-size:15px}.cal-head h2{font-size:20px}.table-wrap{padding:10px}.reservation-detail{padding:12px}}
 @media(prefers-reduced-motion:reduce){.date-details{animation:none}}
 
+
+.calendar-status{min-width:126px;padding:7px 9px;border:1px solid #d7b36a;border-radius:7px;background:#fff;color:#241f20;font-weight:800}.calendar-status:disabled{opacity:.65}.calendar-save-state{font-size:10px;color:#d7b36a;margin-top:4px;min-height:12px}
