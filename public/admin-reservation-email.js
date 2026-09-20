@@ -29,3 +29,5 @@ $('resetReservationEmailTemplate').onclick=async function(){
     await loadReservationEmailAdmin();setStatus('reservationEmailStatus','Default reservation and closure email settings restored.');
   }catch(e){setStatus('reservationEmailStatus',e.message)}
 };
+
+setTimeout(function(){if($('manager')&&$('manager').style.display!=='none')loadReservationEmailAdmin()},0);
