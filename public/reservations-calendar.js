@@ -120,9 +120,28 @@
     return section;
   }
 
+  function statusOptions(current){
+    return ['pending','confirmed','seated','completed','cancelled'].map(x=>'<option value="'+x+'"'+(x===current?' selected':'')+'>'+x.charAt(0).toUpperCase()+x.slice(1)+'</option>').join('');
+  }
+
   function renderTable(){
     const sorted=[...reservations].sort((a,b)=>String(b.reservation_date).localeCompare(String(a.reservation_date))||operatingOrder(b.reservation_time)-operatingOrder(a.reservation_time)||Number(b.id)-Number(a.id));
-    $('rows').innerHTML=sorted.map(r=>`<tr id="reservation-row-${esc(r.id)}" data-reservation-id="${esc(r.id)}" class="${String(r.id)===String(highlightedId)?'highlighted':''}"><td>#${esc(r.id)}</td><td>${esc(dateOnly(r.reservation_date))}</td><td>${fmtTime(r.reservation_time)}–${fmtTime(r.end_time)}</td><td>${esc(r.customer_name||'—')}</td><td>${esc(r.party_size??'—')}</td><td>${esc(r.phone||'—')}</td><td>${esc(r.status||'pending')}</td></tr>`).join('')||'<tr><td colspan="7">No reservations yet.</td></tr>';
+    $('rows').innerHTML=sorted.map(r=>'<tr id="reservation-row-'+esc(r.id)+'" data-reservation-id="'+esc(r.id)+'" class="'+(String(r.id)===String(highlightedId)?'highlighted':'')+'"><td>#'+esc(r.id)+'</td><td>'+esc(dateOnly(r.reservation_date))+'</td><td>'+fmtTime(r.reservation_time)+'–'+fmtTime(r.end_time)+'</td><td>'+esc(r.customer_name||'—')+'</td><td>'+esc(r.party_size??'—')+'</td><td>'+esc(r.phone||'—')+'</td><td><select class="calendar-status" data-id="'+esc(r.id)+'" data-before="'+esc(r.status||'pending')+'">'+statusOptions(r.status||'pending')+'</select><div class="calendar-save-state" id="calendar-save-'+esc(r.id)+'"></div></td></tr>').join('')||'<tr><td colspan="7">No reservations yet.</td></tr>';
+    $('rows').querySelectorAll('.calendar-status').forEach(sel=>{
+      sel.addEventListener('change',async()=>{
+        const id=sel.dataset.id,before=sel.dataset.before,next=sel.value,state=document.getElementById('calendar-save-'+id);
+        sel.disabled=true;if(state)state.textContent='Saving…';
+        try{
+          const resp=await fetch('/api/admin/reservations/'+encodeURIComponent(id)+'/status',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:next})});
+          const data=await resp.json().catch(()=>({}));
+          if(!resp.ok)throw new Error(data.error||'Could not update status');
+          const row=reservations.find(x=>String(x.id)===String(id));if(row)row.status=next;
+          sel.dataset.before=next;if(state)state.textContent='Saved';
+        }catch(e){
+          sel.value=before;if(state)state.textContent=e.message||'Save failed';
+        }finally{sel.disabled=false}
+      });
+    });
   }
 
   function focusReservation(id){
