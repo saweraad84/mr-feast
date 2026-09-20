@@ -4,14 +4,43 @@ var setStatus=function(id,text){var el=$(id);if(el)el.textContent=text||''};
 var weekdayIds=['resSun','resMon','resTue','resWed','resThu','resFri','resSat'];
 var closedDates=[];
 function pkToday(){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Karachi',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())}
-function activatePanel(name){
-  document.querySelectorAll('.panel').forEach(function(p){p.classList.toggle('active',p.id==='panel-'+name)});
+function setActiveAdminMenu(name){
   document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.toggle('active',b.dataset.panel===name)});
   var active=document.querySelector('.nav-btn[data-panel="'+name+'"]');
-  $('panelTitle').textContent=active?active.textContent:'Mr. Feast Admin';
-  window.scrollTo({top:0,behavior:'smooth'});
+  if($('panelTitle'))$('panelTitle').textContent=active?active.textContent:'Mr. Feast Admin';
 }
-document.querySelectorAll('.nav-btn').forEach(function(b){b.addEventListener('click',function(){activatePanel(b.dataset.panel)})});
+function scrollToAdminPanel(name){
+  var target=$('panel-'+name);
+  if(!target)return;
+  setActiveAdminMenu(name);
+  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  target.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
+}
+document.querySelectorAll('.nav-btn').forEach(function(b){
+  b.addEventListener('click',function(){scrollToAdminPanel(b.dataset.panel)});
+});
+var adminScrollTick=false;
+function updateAdminMenuFromScroll(){
+  adminScrollTick=false;
+  if(!$('manager')||$('manager').style.display==='none')return;
+  var panels=Array.prototype.slice.call(document.querySelectorAll('.panel'));
+  if(!panels.length)return;
+  var anchor=Math.min(155,window.innerHeight*.24),current=panels[0];
+  panels.forEach(function(p){
+    var rect=p.getBoundingClientRect();
+    if(rect.top<=anchor)current=p;
+  });
+  setActiveAdminMenu(String(current.id||'').replace('panel-',''));
+}
+function scheduleAdminMenuUpdate(){
+  if(adminScrollTick)return;
+  adminScrollTick=true;
+  requestAnimationFrame(updateAdminMenuFromScroll);
+}
+var adminWorkspace=document.querySelector('.workspace');
+if(adminWorkspace)adminWorkspace.addEventListener('scroll',scheduleAdminMenuUpdate,{passive:true});
+window.addEventListener('scroll',scheduleAdminMenuUpdate,{passive:true});
+window.addEventListener('resize',scheduleAdminMenuUpdate);
 async function show(ok){
   $('loginCard').style.display=ok?'none':'block';
   $('manager').style.display=ok?'grid':'none';
@@ -19,6 +48,7 @@ async function show(ok){
   await Promise.allSettled([loadRestaurantStatus(),loadReservationSettings()]);
   if(window.loadReservationEmailAdmin)window.loadReservationEmailAdmin();
   if(window.loadCommerceAdmin)window.loadCommerceAdmin();
+  setTimeout(updateAdminMenuFromScroll,0);
 }
 async function login(){
   setStatus('loginStatus','Signing in…');
