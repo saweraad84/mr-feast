@@ -138,6 +138,7 @@
           </div>
           <label>Intro / reservation message<textarea id="reservation_customer_intro"></textarea></label>
           <label>Footer message<textarea id="reservation_customer_footer"></textarea></label>
+          <div class="preview" id="reservationEmailPreview"><div class="preview-head" style="background:#171717"><div class="preview-brand" style="color:#C9A45C">MR. FEAST</div><div class="preview-title" id="reservationPreviewTitle">Reservation Received</div></div><div class="preview-body"><b id="reservationPreviewGreeting">Hello Customer,</b><p id="reservationPreviewIntro">Your reservation has been received.</p><div class="preview-row"><span>18 September 2026 · 15:00–16:00</span><b>4 guests</b></div><p id="reservationPreviewFooter">We look forward to serving you.</p></div><div class="preview-foot" style="background:#6B1F2B" id="reservationPreviewSignoff">Mr. Feast</div></div>
         </div>
 
         <div class="subcard">
@@ -162,6 +163,7 @@
           <label>Main message<textarea id="closure_email_intro"></textarea></label>
           <label>Footer message<textarea id="closure_email_footer"></textarea></label>
           <div class="hint">Available placeholders: {reservation_id}, {booking_id}, {booking_type}, {customer_name}, {reservation_date}, {start_time}, {end_time}, {party_size}, {reason}, {total}</div>
+          <div class="preview" id="closureEmailPreview"><div class="preview-head" style="background:#171717"><div class="preview-brand" style="color:#C9A45C">MR. FEAST</div><div class="preview-title" id="closurePreviewTitle">Restaurant Temporarily Closed</div></div><div class="preview-body"><p id="closurePreviewIntro">We are sorry, but Mr. Feast has closed because of emergency maintenance. Your reservation #25 has been cancelled.</p><p id="closurePreviewFooter">We apologize for the inconvenience.</p></div><div class="preview-foot" style="background:#6B1F2B" id="closurePreviewSignoff">Mr. Feast</div></div>
         </div>
 
         <div class="actions"><button id="saveReservationEmailTemplate">Save Reservation Email Settings</button><button id="resetReservationEmailTemplate" class="danger">Restore Defaults</button></div>
