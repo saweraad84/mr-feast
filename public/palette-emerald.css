@@ -63,3 +63,118 @@ footer{color:#eaf4ef!important;border-color:rgba(32,201,151,.24)!important}foote
 .chatinput input:focus{border-color:#0f8a5f!important}.chatinput button{background:#0f8a5f!important}
 
 .cart-drawer{background:#fff!important;color:#101512!important}.cart-summary{background:#eff7f3!important}.checkout-btn{background:#0f8a5f!important;color:#fff!important}.checkout-btn:hover{background:#065f46!important}
+
+
+/* Reservation section: force Black + Emerald + White over dynamically injected legacy colors */
+.reservation-section{
+  background:radial-gradient(circle at 15% 10%,rgba(32,201,151,.12),transparent 30%),linear-gradient(135deg,#f5f8f6 0%,#ffffff 50%,#ecfdf5 100%)!important;
+}
+.reservation-hero{
+  background:linear-gradient(120deg,#050706 0%,#092019 58%,#0f8a5f 100%)!important;
+  box-shadow:0 22px 70px rgba(6,95,70,.18)!important;
+}
+.reservation-hero .kicker{color:#20c997!important}
+.reservation-hero h2{color:#fff!important}
+.reservation-hero h2 em{color:#a7f3d0!important}
+.reservation-hero p{color:#e7f8f0!important}
+.capacity-strip div{
+  border-color:rgba(255,255,255,.20)!important;
+  background:rgba(255,255,255,.07)!important;
+}
+.capacity-strip b{color:#a7f3d0!important}
+.capacity-strip span{color:#fff!important}
+
+.reservation-panel{
+  background:#fff!important;
+  border-color:rgba(15,138,95,.14)!important;
+  box-shadow:0 22px 70px rgba(6,95,70,.10)!important;
+}
+.reservation-copy .eyebrow{color:#0f8a5f!important}
+.reservation-copy h3{color:#050706!important}
+.reservation-copy>p{color:#5f6b65!important}
+.feature-stack div{
+  background:linear-gradient(135deg,#f7fffb,#effaf5)!important;
+  border-left-color:#0f8a5f!important;
+}
+.feature-stack b{color:#0f8a5f!important}
+.feature-stack span{color:#5f6b65!important}
+
+.reservation-panel label{color:#101512!important}
+.reservation-panel input,
+.reservation-panel select,
+.reservation-panel textarea,
+.date-button{
+  background:#fff!important;
+  color:#101512!important;
+  border-color:#c8d7d0!important;
+}
+.reservation-panel input:focus,
+.reservation-panel select:focus,
+.reservation-panel textarea:focus,
+.date-button:focus{
+  border-color:#0f8a5f!important;
+  box-shadow:0 0 0 4px rgba(15,138,95,.10)!important;
+}
+.date-button{color:#101512!important}
+.date-button b{
+  color:#065f46!important;
+  background:#e7f8f0!important;
+}
+.pk-phone{
+  background:#fff!important;
+  border-color:#c8d7d0!important;
+}
+.pk-phone span{
+  color:#065f46!important;
+  background:#eff7f3!important;
+  border-right-color:#d8e8e0!important;
+}
+.res-message,.time-note{color:#0f8a5f!important}
+.reservation-submit{
+  background:linear-gradient(90deg,#0f8a5f,#065f46)!important;
+  color:#fff!important;
+  box-shadow:0 10px 24px rgba(6,95,70,.22)!important;
+}
+.reservation-submit:hover{background:linear-gradient(90deg,#0b7753,#054d3a)!important}
+
+.calendar-card{
+  background:#fff!important;
+  border-color:rgba(32,201,151,.38)!important;
+}
+.calendar-head{
+  background:linear-gradient(120deg,#050706,#0f8a5f)!important;
+}
+.calendar-head span{color:#a7f3d0!important}
+.calendar-nav>button{
+  background:#e7f8f0!important;
+  color:#065f46!important;
+}
+.calendar-week{color:#607168!important}
+.calendar-day{
+  background:#fff!important;
+  color:#101512!important;
+  border-color:#dcebe4!important;
+}
+.calendar-day:hover:not(:disabled){
+  border-color:#0f8a5f!important;
+  background:#f1fff8!important;
+}
+.calendar-day:disabled{
+  background:#edf2ef!important;
+  color:#9aa6a0!important;
+}
+.calendar-day.closed-date:disabled{
+  background:#dcefe6!important;
+  color:#5f766b!important;
+  border-color:#bfd8cc!important;
+}
+.calendar-day.selected{
+  background:#0f8a5f!important;
+  color:#fff!important;
+  border-color:#0f8a5f!important;
+  box-shadow:0 5px 14px rgba(6,95,70,.28)!important;
+}
+.calendar-key{color:#607168!important}
+.key-dot.available{background:#fff!important;border-color:#9fb8ad!important}
+.key-dot.closed{background:#cfe8dc!important}
+.key-dot.selected{background:#0f8a5f!important}
