@@ -223,4 +223,4 @@ function attach(app){
 function wrapped(){const app=expressOriginal.apply(null,arguments);attach(app);return app}
 Object.assign(wrapped,expressOriginal);
 require.cache[expressPath].exports=wrapped;
-init().then(function(){require('./reservation-runtime-fix')}).catch(function(e){console.error('Mr Feast upgrade init failed',e);process.exit(1)});
+init().then(function(){console.log('Mr. Feast upgrade runtime initialized');require('./reservation-runtime-fix')}).catch(function(e){console.error('Mr Feast upgrade init failed',e);process.exit(1)});
