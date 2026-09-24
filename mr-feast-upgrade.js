@@ -116,6 +116,7 @@ function scheduleReason(date,start,end,party,c){
   return''
 }
 async function reservationRows(date,client){
+  if(!validDate(date))return [];
   const db=client||pool;
   const r=await db.query("SELECT id,reservation_date,reservation_time,end_time,table_ids,status FROM reservations WHERE status IN ('pending','confirmed','seated') AND reservation_date BETWEEN $1::date-1 AND $1::date+1",[date]);
   return r.rows
