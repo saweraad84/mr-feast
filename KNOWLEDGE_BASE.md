@@ -1,41 +1,41 @@
 # Mr. Feast Website Knowledge Base
 
 ## Brand
-Mr. Feast is a restaurant website focused on Fast Food, Pakistani-style charcoal BBQ, Sweets, Desserts and Special Deals. Main hero message: “Taste That Brings Everyone Together.”
+Mr. Feast is a restaurant focused on Fast Food, Pakistani-style charcoal BBQ, Sweets, Desserts and Special Deals. Main hero message: “Taste That Brings Everyone Together.”
 
-## Menu and current sample prices
-Fast Food: Classic Burger Rs.450; Zinger Burger Rs.550; Chicken Pizza Rs.850; Chicken Shawarma Rs.350; Fries Rs.250; Club Sandwich Rs.550.
-BBQ: Chicken Tikka Rs.450; Malai Boti Rs.600; Seekh Kebab Rs.550; Chicken Wings Rs.550; BBQ Platters Rs.1,350.
-Sweets: Gulab Jamun Rs.220; Rasmalai Rs.280; Kheer Rs.250; Brownies Rs.300.
-Desserts: Ice Cream Rs.250; Chocolate Lava Cake Rs.450; Cheesecake Rs.500; Waffles Rs.450; Sundaes Rs.350.
+## Menu
+Current menu includes burgers, pizza, shawarma, fries, sandwiches, charcoal BBQ, sweets and desserts. Menu prices and temporary availability are controlled from Main Admin. The assistant must treat the live menu catalog as the source of truth and must not offer an item that is disabled.
 
-## Deals
-Deals are database-managed. Admin can add, edit, delete and replace each deal picture. The public deal grid is centered and responsive so the page structure remains stable as deal count changes.
-
-## Reviews
-Reviews are database-managed. Admin can add and remove customer reviews. Only active database reviews are displayed publicly.
+## Deals and reviews
+Deals and reviews are database-managed from Main Admin. Only active deals and active reviews are shown publicly.
 
 ## Ordering
-Customers add menu items or deals to the cart. Checkout requires customer name, contact number and email address; notes are optional. Orders are saved in PostgreSQL and enter status `queue`. Order cancellation is intentionally not available in this phase. WhatsApp ordering is intentionally removed for now.
+Customers can order for Pickup or Delivery when each option is enabled. The cart clearly shows delivery charge, minimum order, available payment methods and estimated service time. Delivery requires an address. Prices and totals are recalculated by the server from the current live catalog.
 
-The restaurant order-receiving email is database-managed from the Admin panel. Current default order email: `saweraad84@gmail.com`. Admin can add, edit or remove this address without changing Railway variables. Removing it stops email delivery but does not stop orders from being saved or appearing in Kitchen/Owner dashboards.
+After an order is accepted, the customer receives an order number and a secure order-status link. Order statuses are Queue, Cooking, Ready, Completed or Cancelled. The assistant may look up an order when the customer provides the order number and the same email address used at checkout. The assistant must ask for explicit confirmation before placing an order.
 
-Automatic email delivery uses the currently saved restaurant order email plus Railway `RESEND_API_KEY`. Optional `ORDER_FROM_EMAIL` can define the sender. If email delivery credentials are not configured, the order is still stored and visible in Kitchen/Owner dashboards.
+## Reservations
+Reservations use live table availability. Date, party size, duration and the configured table-reset buffer determine which start times are offered. Customer-facing start times use the configured slot interval, normally 15 minutes.
 
-## Admin
-Private route: `/admin`. Password protected. Password field includes show/hide eye control. Admin manages restaurant order email, menu pictures, deals and reviews, and has links to Kitchen and Owner dashboards.
+A new reservation is created with status Pending, not Confirmed. The customer receives a secure management link by email and may view the fields enabled by Main Admin. Customer cancellation through that secure link is available only when Main Admin allows it and the reservation is still Pending or Confirmed. The assistant must ask for explicit confirmation before creating a reservation.
 
-## Kitchen Dashboard
-Private route: `/kitchen`. Uses admin login. Shows three operational stages: Order in Queue, Order in Cooking, Order Ready. Operator can move Queue → Cooking → Ready → Completed.
-
-## Owner Dashboard
-Private route: `/owner`. Uses admin login. Shows counts for Queue, Cooking, Ready and Completed, item/deal quantity figures across orders, and a separate completed-orders list.
+## Restaurant availability
+Main Admin can temporarily close Mr. Feast. When closed, customer ordering and reservations are unavailable and the public website displays “Temporarily Closed” with the configured reason when present.
 
 ## Contact / business details
-Exact address, opening hours and phone are not yet confirmed in website data and must not be invented. Current restaurant order-receiving email is `saweraad84@gmail.com`, unless the Admin changes or removes it.
+Business name: Mr. Feast.
+Address currently shown on the website: Street No. 03, Sector-E, Akhter Colony, Mr. Feast, Karachi.
+Phone / WhatsApp currently shown on the website: +92 300 2010546.
+Contact details, map query, displayed timings, hero content and trust information are configurable from Main Admin. The assistant should use live site configuration for current details rather than inventing them.
+
+## Admin and dashboards
+Main Admin: /admin
+Reservation Admin: /reservation-admin.html
+Reservation Calendar: /reservations-calendar.html
+Kitchen Dashboard: /kitchen
+Owner Dashboard: /owner
+
+Main Admin controls restaurant open/close state, menu availability and prices, menu pictures, deals, delivery and checkout settings, reservation capacity/schedule/slot duration/buffer, reservation email settings, secure customer-link permissions, reviews, hero content, contact details/map and website analytics.
 
 ## Assistant rules
-The Mr. Feast Assistant must answer only from information actually present on the website/knowledge base and current database-driven deals. It may explain menu items, sample prices, deals and ordering steps. If requested information is not present, it must say it does not have that information and must not guess, invent, infer or provide unrelated general knowledge.
-
-## Temporarily removed / later phase
-WhatsApp functionality is removed for now and may be restored later. Order cancellation is not implemented in the current phase and may be considered later.
+Answer only from live website configuration, live menu/deals, reservation availability, order lookup results and this knowledge base. Never invent prices, availability, hours, policies or customer/order information. Require explicit customer confirmation before creating an order or reservation.
