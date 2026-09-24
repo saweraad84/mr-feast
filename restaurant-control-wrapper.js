@@ -123,18 +123,18 @@ function reservationData(r){
     reservation_id:r.id,booking_id:r.id,booking_type:'reservation',customer_name:r.customer_name||'Customer',
     phone:r.phone||'',email:r.email||'',reservation_date:dateOnly(r.reservation_date),
     start_time:timeOnly(r.reservation_time),end_time:timeOnly(r.end_time),party_size:r.party_size||'',
-    special_requests:r.special_requests||'',reason:'',total:''
+    special_requests:r.special_requests||'',manage_url:r.manage_url||'',reason:'',total:''
   };
 }
 async function sendReservationEmails(r){
   if(!r)return {customer:false,restaurant:false};
   const t=await getTemplate(),theme=await getEmailTheme(),data=reservationData(r);
-  const rows='<table width="100%" style="font-size:14px;line-height:1.8;margin:18px 0"><tr><td><b>Reservation</b></td><td align="right">#'+esc(r.id)+'</td></tr><tr><td><b>Date</b></td><td align="right">'+esc(data.reservation_date)+'</td></tr><tr><td><b>Time</b></td><td align="right">'+esc(data.start_time)+'–'+esc(data.end_time)+'</td></tr><tr><td><b>Guests</b></td><td align="right">'+esc(data.party_size)+'</td></tr><tr><td><b>Phone</b></td><td align="right">'+esc(data.phone)+'</td></tr><tr><td><b>Special requests</b></td><td align="right">'+esc(data.special_requests||'-')+'</td></tr></table>';
+  const rows='<table width="100%" style="font-size:14px;line-height:1.8;margin:18px 0"><tr><td><b>Reservation</b></td><td align="right">#'+esc(r.id)+'</td></tr><tr><td><b>Status</b></td><td align="right">Pending confirmation</td></tr><tr><td><b>Date</b></td><td align="right">'+esc(data.reservation_date)+'</td></tr><tr><td><b>Time</b></td><td align="right">'+esc(data.start_time)+'–'+esc(data.end_time)+'</td></tr><tr><td><b>Guests</b></td><td align="right">'+esc(data.party_size)+'</td></tr><tr><td><b>Phone</b></td><td align="right">'+esc(data.phone)+'</td></tr><tr><td><b>Special requests</b></td><td align="right">'+esc(data.special_requests||'-')+'</td></tr></table>';
   let customer=false,restaurant=false;
   if(t.reservation_customer_email_enabled!=='false'&&r.email){
     const subject=fill(t.reservation_customer_subject,data);
-    const textBody=fill(t.reservation_customer_greeting,data)+'\n\n'+fill(t.reservation_customer_intro,data)+'\n\nReservation #'+r.id+'\nDate: '+data.reservation_date+'\nTime: '+data.start_time+'–'+data.end_time+'\nGuests: '+data.party_size+'\nPhone: '+data.phone+'\nSpecial requests: '+(data.special_requests||'-')+'\n\n'+fill(t.reservation_customer_footer,data)+'\n\n'+fill(t.reservation_customer_signoff,data);
-    const contentHtml='<p style="font-size:17px;font-weight:700;margin:0 0 10px">'+nl(fill(t.reservation_customer_greeting,data))+'</p><p style="font-size:15px;line-height:1.7;margin:0">'+nl(fill(t.reservation_customer_intro,data))+'</p>'+rows+'<p style="font-size:14px;line-height:1.7">'+nl(fill(t.reservation_customer_footer,data))+'</p><p style="font-weight:800">'+nl(fill(t.reservation_customer_signoff,data))+'</p>';
+    const textBody=fill(t.reservation_customer_greeting,data)+'\n\n'+fill(t.reservation_customer_intro,data)+'\n\nReservation #'+r.id+'\nStatus: Pending confirmation\nDate: '+data.reservation_date+'\nTime: '+data.start_time+'–'+data.end_time+'\nGuests: '+data.party_size+'\nPhone: '+data.phone+'\nSpecial requests: '+(data.special_requests||'-')+(data.manage_url?'\n\nManage or cancel your reservation securely: '+data.manage_url:'')+'\n\n'+fill(t.reservation_customer_footer,data)+'\n\n'+fill(t.reservation_customer_signoff,data);
+    const manage=data.manage_url?'<p style="margin:22px 0"><a href="'+esc(data.manage_url)+'" style="display:inline-block;background:'+theme.email_accent_color+';color:#fff;text-decoration:none;padding:12px 18px;border-radius:999px;font-weight:800">View / Manage Reservation</a></p>':'';const contentHtml='<p style="font-size:17px;font-weight:700;margin:0 0 10px">'+nl(fill(t.reservation_customer_greeting,data))+'</p><p style="font-size:15px;line-height:1.7;margin:0">'+nl(fill(t.reservation_customer_intro,data))+'</p>'+rows+manage+'<p style="font-size:14px;line-height:1.7">'+nl(fill(t.reservation_customer_footer,data))+'</p><p style="font-weight:800">'+nl(fill(t.reservation_customer_signoff,data))+'</p>';
     customer=await sendMail(r.email,subject,textBody,shell(theme,fill(t.reservation_customer_title,data),contentHtml,fill(t.reservation_customer_signoff,data)));
   }
   const restaurantEmail=await getSetting('order_email','');
@@ -174,7 +174,7 @@ async function closeRestaurant(reason){
   await setSetting('restaurant_closed_at',new Date().toISOString());
   await setSetting('reservation_enabled','false');
 
-  const reservations=(await pool.query("SELECT * FROM reservations WHERE status IN ('pending','confirmed') AND reservation_date >= $1::date ORDER BY reservation_date,reservation_time,id",[pkToday()])).rows;
+  const reservations=(await pool.query("SELECT * FROM reservations WHERE status IN ('pending','confirmed') AND (reservation_date + reservation_time + CASE WHEN end_time IS NOT NULL AND end_time <= reservation_time THEN interval '1 day' ELSE interval '0 day' END) > NOW() AT TIME ZONE 'Asia/Karachi' ORDER BY reservation_date,reservation_time,id")).rows;
   let orders=[];
   try{orders=(await pool.query("SELECT * FROM orders WHERE status IN ('queue','cooking','ready') ORDER BY id")).rows}catch(e){if(!e||e.code!=='42P01')throw e}
   if(reservations.length)await pool.query("UPDATE reservations SET status='cancelled',updated_at=NOW() WHERE id=ANY($1::int[])",[reservations.map(function(x){return Number(x.id)})]);
