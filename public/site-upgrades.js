@@ -78,7 +78,7 @@ function applyConfig(cfg){
 }
 function applyRestaurantState(s){
   const closed=!s.open;document.documentElement.classList.toggle('site-closed',closed);const banner=document.getElementById('restaurantClosedBanner');if(banner){banner.hidden=!closed;document.getElementById('restaurantClosedReason').textContent=closed&&s.reason?'· '+s.reason:''}
-  document.querySelectorAll('.order-trigger,.cart-nav,.reservation-submit').forEach(b=>{b.disabled=closed;b.setAttribute('aria-disabled',closed?'true':'false')})
+  document.querySelectorAll('.order-trigger,.cart-nav,.reservation-submit,#checkoutBtn').forEach(b=>{b.disabled=closed;b.setAttribute('aria-disabled',closed?'true':'false')});let pill=document.getElementById('restaurantNavState');if(!pill){pill=document.createElement('span');pill.id='restaurantNavState';pill.className='restaurant-nav-state';document.querySelector('nav')?.insertBefore(pill,document.getElementById('cartNav')||null)}if(pill){pill.textContent=closed?'Temporarily Closed':'Open';pill.classList.toggle('closed',closed)}
 }
 async function refreshConfig(){try{const r=await fetch('/api/site-config',{cache:'no-store'}),cfg=await r.json();if(r.ok)applyConfig(cfg)}catch(e){}}
 refreshConfig();setInterval(refreshConfig,30000);
