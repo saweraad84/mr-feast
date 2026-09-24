@@ -28,8 +28,10 @@ function injectCheckout(){
 }
 function cartSubtotal(){return typeof cart!=='undefined'?[...cart.values()].reduce((s,x)=>s+Number(x.price)*Number(x.qty),0):0}
 function selectedType(){return document.querySelector('input[name="fulfilment"]:checked')?.value||'pickup'}
+function updatePaymentOptions(){if(!siteCfg)return;const pm=document.getElementById('paymentMethod');if(!pm)return;const type=selectedType(),all=siteCfg.delivery.payment_methods||[],generic=all.filter(x=>!/delivery|pickup/i.test(x)),specific=all.filter(x=>type==='delivery'?/delivery|cod/i.test(x):/pickup/i.test(x)),allowed=[...new Set([...generic,...specific])];const list=allowed.length?allowed:all,old=pm.value;pm.innerHTML=list.map(x=>'<option>'+safe(x)+'</option>').join('');if([...pm.options].some(o=>o.value===old))pm.value=old}
 function updateCheckoutFacts(){
   if(!siteCfg)return;
+  updatePaymentOptions();
   const type=selectedType(),delivery=type==='delivery',dc=delivery?Number(siteCfg.delivery.delivery_charge||0):0,subtotal=cartSubtotal();
   const address=document.getElementById('deliveryAddressLabel');if(address)address.style.display=delivery?'block':'none';
   const min=document.getElementById('checkoutMinimum'),ch=document.getElementById('checkoutDeliveryCharge'),eta=document.getElementById('checkoutEta'),pay=document.getElementById('checkoutPayable');
@@ -61,7 +63,7 @@ document.querySelector('a[href="#reservations"]')?.addEventListener('click',()=>
 function phoneDigits(v){return String(v||'').replace(/\D/g,'')}
 function applyConfig(cfg){
   siteCfg=cfg;injectCheckout();
-  const pm=document.getElementById('paymentMethod');if(pm){const old=pm.value;pm.innerHTML=(cfg.delivery.payment_methods||[]).map(x=>'<option>'+safe(x)+'</option>').join('');if([...pm.options].some(o=>o.value===old))pm.value=old}
+  updatePaymentOptions();
   const delRadio=document.querySelector('input[name="fulfilment"][value="delivery"]'),pickRadio=document.querySelector('input[name="fulfilment"][value="pickup"]');if(delRadio)delRadio.disabled=!cfg.delivery.enabled;if(pickRadio)pickRadio.disabled=!cfg.delivery.pickup_enabled;if(delRadio?.checked&&delRadio.disabled&&pickRadio){pickRadio.checked=true}
   const a=document.getElementById('contactAddress');if(a)a.textContent=cfg.contact.address||'Mr. Feast, Karachi';
   const p=document.getElementById('contactPhone');if(p){p.textContent=cfg.contact.phone;p.href='tel:'+phoneDigits(cfg.contact.phone)}
