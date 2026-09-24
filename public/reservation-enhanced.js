@@ -52,7 +52,7 @@ function showSuggestions(j){
 msg.addEventListener('click',e=>{const s=e.target.dataset.start;if(!s)return;startSelect.value=s;chooseEnd();});
 date.addEventListener('change',loadSlots);party.addEventListener('change',loadSlots);durationSelect.addEventListener('change',loadSlots);startSelect.addEventListener('change',chooseEnd);
 [name,phone,email,notes].forEach(el=>el.addEventListener('input',resetReview));
-form.addEventListener('reset',()=>setTimeout(()=>{resetReview();startSelect.innerHTML='<option value="">Choose a date to see available times</option>';endHidden.value='';if(cfg){partyOptions();durationOptions()}},0));
+form.addEventListener('reset',()=>{if(form.dataset.keepSuccess==='1'){form.dataset.keepSuccess='0';return}setTimeout(()=>{resetReview();startSelect.innerHTML='<option value="">Choose a date to see available times</option>';endHidden.value='';if(cfg){partyOptions();durationOptions()}},0)});
 form.addEventListener('submit',async e=>{
   e.preventDefault();e.stopImmediatePropagation();const v=values(),bad=validate(v);if(bad){setStatus(bad);return}
   const snap=snapshot(v);
@@ -61,7 +61,7 @@ form.addEventListener('submit',async e=>{
   try{
     const r=await fetch('/api/reservations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(v)}),j=await r.json();if(!r.ok){showSuggestions(j);throw new Error(j.error||'Reservation failed')}
     review.className='reservation-review reservation-success';review.hidden=false;review.innerHTML='<h4>Reservation #'+esc(j.reservationId)+' received</h4><p><span class="status-pill-customer pending">Pending confirmation</span></p><div class="reservation-review-grid"><div><b>Date</b>'+esc(formatDate(v.reservation_date))+'</div><div><b>Time</b>'+esc(formatTime(v.reservation_time))+' – '+esc(formatTime(v.end_time))+'</div><div><b>Guests</b>'+v.party_size+'</div><div><b>Reference</b>#'+esc(j.reservationId)+'</div></div><p>Your secure management link has also been sent to your email. Keep it private.</p>'+(j.manageUrl?'<a class="manage-link" href="'+esc(j.manageUrl)+'">View / Manage Reservation</a>':'');
-    setStatus('Reservation received. It is Pending until Mr. Feast confirms it.');form.reset();date.value='';const dt=by('resDateText');if(dt)dt.textContent='Choose a date';review.hidden=false;submit.textContent='Review Reservation'
+    setStatus('Reservation received. It is Pending until Mr. Feast confirms it.');form.dataset.keepSuccess='1';form.reset();date.value='';const dt=by('resDateText');if(dt)dt.textContent='Choose a date';review.hidden=false;submit.textContent='Review Reservation'
   }catch(err){setStatus(err.message||'Reservation failed.');submit.textContent='Review Reservation';confirmedStep=false}finally{submit.disabled=false}
 },true);
 submit.textContent='Review Reservation';
