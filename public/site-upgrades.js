@@ -53,9 +53,10 @@ if(checkout)checkout.onclick=async()=>{
   checkout.disabled=false;checkout.textContent='Place Order';
   if(!out.ok)return toast(out.error);
   orderCompleted=true;cart.clear();renderCart();close();
-  const modal=document.getElementById('orderSuccessModal');document.getElementById('orderSuccessTitle').textContent='Order #'+out.orderId+' received';document.getElementById('orderSuccessText').textContent='Status: Queue · Estimated '+out.estimatedMinutes+' minutes · Total '+money2(out.total)+'. Use the secure status page to follow your order.';const link=document.getElementById('orderStatusLink');link.href=out.statusUrl;modal.hidden=false
+  toast('Order #'+out.orderId+' received. Opening order status…');
+  if(out.statusUrl){window.location.href=out.statusUrl}
 };
-document.getElementById('orderSuccessClose')?.addEventListener('click',()=>document.getElementById('orderSuccessModal').hidden=true);
+
 document.getElementById('cartNav')?.addEventListener('click',()=>track('order_click'));
 document.querySelectorAll('.order-trigger').forEach(b=>b.addEventListener('click',()=>track('order_click')));
 document.querySelector('a[href="#reservations"]')?.addEventListener('click',()=>track('reservation_open'));
