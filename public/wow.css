@@ -115,3 +115,57 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 @media(prefers-reduced-motion:reduce){
   nav,.navlinks a:after,.trust-grid article,.contact-detail,.directions-btn,.footer-upgraded a,.footer-upgraded button{transition:none!important}
 }
+
+
+/* Premium navbar action controls */
+.navlinks a[href="#reservations"],.navlinks a[href="#contact"]{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:36px;padding:8px 13px;border:1px solid rgba(231,207,152,.14);
+  border-radius:999px;background:rgba(255,255,255,.025);
+  color:#f5eee8;backdrop-filter:blur(8px);
+  transition:background .22s ease,border-color .22s ease,color .22s ease,transform .22s ease,box-shadow .22s ease
+}
+.navlinks a[href="#reservations"]:hover,.navlinks a[href="#contact"]:hover,
+.navlinks a[href="#reservations"].wow-active,.navlinks a[href="#contact"].wow-active{
+  background:linear-gradient(135deg,rgba(107,31,43,.48),rgba(201,164,92,.10));
+  border-color:rgba(201,164,92,.52);color:#fff;transform:translateY(-1px);
+  box-shadow:0 8px 22px rgba(0,0,0,.18)
+}
+.navlinks a[href="#reservations"]:after,.navlinks a[href="#contact"]:after{display:none!important}
+
+.restaurant-nav-state{
+  min-height:36px!important;padding:8px 13px!important;
+  background:linear-gradient(135deg,rgba(14,19,15,.72),rgba(29,22,16,.56))!important;
+  border-color:rgba(201,164,92,.42)!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.025),0 8px 22px rgba(0,0,0,.16)
+}
+.restaurant-nav-state:hover,.restaurant-nav-state[aria-expanded="true"]{
+  background:linear-gradient(135deg,rgba(33,64,42,.70),rgba(107,31,43,.30))!important;
+  border-color:rgba(231,207,152,.72)!important;
+  box-shadow:0 10px 28px rgba(0,0,0,.24),0 0 0 3px rgba(201,164,92,.06)
+}
+
+.cart-nav{
+  position:relative;overflow:hidden;min-height:42px;padding:11px 20px!important;
+  background:linear-gradient(135deg,#7a2438,#5b1728 58%,#3f0f1d)!important;
+  border:1px solid rgba(231,207,152,.38)!important;
+  box-shadow:0 12px 28px rgba(63,15,29,.28),inset 0 1px 0 rgba(255,255,255,.09);
+  letter-spacing:.1px;transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease!important
+}
+.cart-nav:before{
+  content:"";position:absolute;top:-55%;left:-42%;width:30%;height:210%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent);
+  transform:rotate(16deg);transition:left .55s ease;pointer-events:none
+}
+.cart-nav:hover{transform:translateY(-2px);border-color:rgba(231,207,152,.72)!important;box-shadow:0 16px 34px rgba(63,15,29,.38),0 0 0 3px rgba(201,164,92,.055)}
+.cart-nav:hover:before{left:125%}
+.cart-nav #navCartCount{
+  display:inline-grid;place-items:center;min-width:22px;height:22px;margin-left:6px;padding:0 6px;
+  border-radius:999px;background:rgba(255,255,255,.13);color:#fff;font-size:10px;
+  border:1px solid rgba(255,255,255,.12)
+}
+
+@media(max-width:800px){
+  .navlinks a[href="#reservations"],.navlinks a[href="#contact"]{border:0;background:transparent;padding:8px 0;min-height:auto;border-radius:0;box-shadow:none}
+  .navlinks a[href="#reservations"]:hover,.navlinks a[href="#contact"]:hover{background:transparent;transform:none;box-shadow:none}
+}

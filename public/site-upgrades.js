@@ -79,9 +79,39 @@ function applyConfig(cfg){
   const slides=document.querySelectorAll('.hero-slide');if(slides[0]&&cfg.hero.image_1)slides[0].style.backgroundImage='url("'+cfg.hero.image_1+'")';if(slides[1]&&cfg.hero.image_2)slides[1].style.backgroundImage='url("'+cfg.hero.image_2+'")';
   applyRestaurantState(cfg.restaurant);updateCheckoutFacts()
 }
+function ensureRestaurantStatusUI(){
+  let pill=document.getElementById('restaurantNavState'),pop=document.getElementById('restaurantStatusPopover');
+  if(!pill){
+    pill=document.createElement('button');pill.type='button';pill.id='restaurantNavState';pill.className='restaurant-nav-state';pill.setAttribute('aria-expanded','false');pill.setAttribute('aria-controls','restaurantStatusPopover');pill.setAttribute('aria-haspopup','dialog');
+    document.querySelector('nav')?.insertBefore(pill,document.getElementById('cartNav')||null);
+  }
+  if(!pop){
+    pop=document.createElement('div');pop.id='restaurantStatusPopover';pop.className='restaurant-status-popover';pop.hidden=true;pop.setAttribute('role','dialog');pop.setAttribute('aria-label','Restaurant status and service availability');
+    pop.innerHTML='<div class="status-popover-head"><div><small>MR. FEAST STATUS</small><strong id="statusPopoverTitle">Open</strong></div><button type="button" id="statusPopoverClose" aria-label="Close status details">×</button></div><div class="status-popover-grid"><div><span>Restaurant</span><b id="statusRestaurantValue">Open</b></div><div><span>Pickup</span><b id="statusPickupValue">Available</b></div><div><span>Delivery</span><b id="statusDeliveryValue">Available</b></div><div><span>Reservations</span><b id="statusReservationValue">Available</b></div></div><div class="status-popover-line"><span>Timings</span><b id="statusTimingsValue">Current hours available online</b></div><p id="statusReasonValue" hidden></p>';
+    document.body.appendChild(pop);
+    pill.addEventListener('click',e=>{e.stopPropagation();const open=pop.hidden;pop.hidden=!open;pill.setAttribute('aria-expanded',open?'true':'false')});
+    document.getElementById('statusPopoverClose')?.addEventListener('click',()=>{pop.hidden=true;pill.setAttribute('aria-expanded','false')});
+    document.addEventListener('click',e=>{if(!pop.hidden&&!pop.contains(e.target)&&e.target!==pill){pop.hidden=true;pill.setAttribute('aria-expanded','false')}});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!pop.hidden){pop.hidden=true;pill.setAttribute('aria-expanded','false');pill.focus()}});
+  }
+  return{pill,pop}
+}
+function updateRestaurantStatusPopover(){
+  if(!siteCfg)return;const ui=ensureRestaurantStatusUI(),closed=!siteCfg.restaurant.open;
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v};
+  set('statusPopoverTitle',closed?'Temporarily Closed':'Open Now');
+  set('statusRestaurantValue',closed?'Closed':'Open');
+  set('statusPickupValue',!closed&&siteCfg.delivery.pickup_enabled?'Available':'Unavailable');
+  set('statusDeliveryValue',!closed&&siteCfg.delivery.enabled?'Available':'Unavailable');
+  set('statusReservationValue',!closed&&siteCfg.reservation.enabled?'Available':'Unavailable');
+  set('statusTimingsValue',siteCfg.contact.timings||('Reservations: '+siteCfg.reservation.open_time+'–'+siteCfg.reservation.close_time));
+  const reason=document.getElementById('statusReasonValue');if(reason){reason.hidden=!closed||!siteCfg.restaurant.reason;reason.textContent=siteCfg.restaurant.reason||''}
+}
 function applyRestaurantState(s){
   const closed=!s.open;document.documentElement.classList.toggle('site-closed',closed);const banner=document.getElementById('restaurantClosedBanner');if(banner){banner.hidden=!closed;document.getElementById('restaurantClosedReason').textContent=closed&&s.reason?'· '+s.reason:''}
-  document.querySelectorAll('.order-trigger,.cart-nav,.reservation-submit,#checkoutBtn').forEach(b=>{b.disabled=closed;b.setAttribute('aria-disabled',closed?'true':'false')});let pill=document.getElementById('restaurantNavState');if(!pill){pill=document.createElement('span');pill.id='restaurantNavState';pill.className='restaurant-nav-state';document.querySelector('nav')?.insertBefore(pill,document.getElementById('cartNav')||null)}if(pill){pill.textContent=closed?'Temporarily Closed':'Open';pill.classList.toggle('closed',closed)}
+  document.querySelectorAll('.order-trigger,.cart-nav,.reservation-submit,#checkoutBtn').forEach(b=>{b.disabled=closed;b.setAttribute('aria-disabled',closed?'true':'false')});
+  const {pill}=ensureRestaurantStatusUI();if(pill){pill.textContent=closed?'Temporarily Closed':'Open';pill.classList.toggle('closed',closed);pill.title='View restaurant status and service availability'}
+  updateRestaurantStatusPopover()
 }
 async function refreshConfig(){try{const r=await fetch('/api/site-config',{cache:'no-store'}),cfg=await r.json();if(r.ok)applyConfig(cfg)}catch(e){}}
 refreshConfig();setInterval(refreshConfig,30000);
