@@ -28,5 +28,46 @@ function watchReservationSuccess(){
   let celebrated=false;const run=()=>{const s=document.querySelector('.reservation-success');if(s&&!celebrated){celebrated=true;requestAnimationFrame(confettiBurst);setTimeout(()=>celebrated=false,2200)}};
   run();new MutationObserver(run).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
 }
-setupGalleryLightbox();watchReservationSuccess();
+function setupLuxuryNav(){
+  const nav=document.querySelector('body>nav');if(!nav)return;
+  let raf=0;
+  const update=()=>{raf=0;nav.classList.toggle('wow-nav-scrolled',scrollY>28)};
+  addEventListener('scroll',()=>{if(!raf)raf=requestAnimationFrame(update)},{passive:true});update();
+  const links=[...nav.querySelectorAll('.navlinks a[href^="#"]')];
+  if(!links.length||!('IntersectionObserver'in window))return;
+  const map=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));
+  const sections=[...map.keys()].map(id=>document.getElementById(id)).filter(Boolean);
+  const io=new IntersectionObserver(entries=>{
+    const visible=entries.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];
+    if(!visible)return;
+    links.forEach(a=>a.classList.toggle('wow-active',a===map.get(visible.target.id)));
+  },{rootMargin:'-22% 0px -62% 0px',threshold:[0,.15,.35,.6]});
+  sections.forEach(s=>io.observe(s));
+}
+function setupDynamicReveals(){
+  if(reduce)return;
+  const selector='.food,.deal-card,.reviewgrid blockquote';
+  const io='IntersectionObserver'in window?new IntersectionObserver(entries=>entries.forEach(e=>{
+    if(e.isIntersecting){e.target.classList.add('wow-in');io.unobserve(e.target)}
+  }),{threshold:.08,rootMargin:'0px 0px -32px'}):null;
+  const bind=root=>{
+    const nodes=[];
+    if(root.nodeType===1&&root.matches?.(selector))nodes.push(root);
+    if(root.querySelectorAll)nodes.push(...root.querySelectorAll(selector));
+    nodes.forEach((el,i)=>{
+      if(el.dataset.wowRevealBound)return;el.dataset.wowRevealBound='1';el.classList.add('wow-reveal');el.dataset.wowDelay=String(i%4);
+      if(io)io.observe(el);else el.classList.add('wow-in');
+    });
+  };
+  ['menuGrid','dealGrid','reviewGrid'].forEach(id=>{const box=document.getElementById(id);if(!box)return;bind(box);new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(bind))).observe(box,{childList:true,subtree:true})});
+}
+function setupHeroDepth(){
+  if(reduce||innerWidth<980)return;
+  const hero=document.querySelector('.hero-slider'),copy=hero?.querySelector('.hero-copy'),card=hero?.querySelector('.hero-wow-card'),orbit=hero?.querySelector('.hero-wow-orbit');
+  if(!hero||!copy)return;
+  let raf=0,last=null;
+  hero.addEventListener('pointermove',e=>{last=e;if(raf)return;raf=requestAnimationFrame(()=>{raf=0;const r=hero.getBoundingClientRect(),x=(last.clientX-r.left)/r.width-.5,y=(last.clientY-r.top)/r.height-.5;copy.style.transform='translate3d('+(x*-5)+'px,'+(y*-4)+'px,0)';if(card)card.style.transform='translate3d('+(x*8)+'px,'+(y*7)+'px,0)';if(orbit)orbit.style.marginRight=(x*5)+'px'})});
+  hero.addEventListener('pointerleave',()=>{copy.style.transform='';if(card)card.style.transform='';if(orbit)orbit.style.marginRight=''});
+}
+setupGalleryLightbox();watchReservationSuccess();setupLuxuryNav();setupDynamicReveals();setupHeroDepth();
 })();
