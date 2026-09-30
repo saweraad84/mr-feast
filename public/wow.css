@@ -169,3 +169,57 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   .navlinks a[href="#reservations"],.navlinks a[href="#contact"]{border:0;background:transparent;padding:8px 0;min-height:auto;border-radius:0;box-shadow:none}
   .navlinks a[href="#reservations"]:hover,.navlinks a[href="#contact"]:hover{background:transparent;transform:none;box-shadow:none}
 }
+
+
+/* Menu category filters — text-only premium tabs */
+.menu-filters{
+  gap:26px!important;
+  align-items:center;
+  margin-bottom:34px!important;
+}
+.menu-filters button{
+  position:relative;
+  border:0!important;
+  background:transparent!important;
+  color:#2a2020!important;
+  border-radius:0!important;
+  padding:6px 0!important;
+  box-shadow:none!important;
+  font-weight:800!important;
+  cursor:pointer;
+  transition:color .2s ease,transform .2s ease!important;
+}
+.menu-filters button:after{
+  content:"";
+  position:absolute;
+  left:50%;
+  right:50%;
+  bottom:0;
+  height:2px;
+  border-radius:999px;
+  background:linear-gradient(90deg,var(--wow-wine),var(--wow-gold));
+  transition:left .22s ease,right .22s ease,opacity .22s ease;
+  opacity:0;
+}
+.menu-filters button:hover{
+  color:var(--wow-wine)!important;
+  transform:translateY(-1px);
+}
+.menu-filters button:hover:after{
+  left:18%;
+  right:18%;
+  opacity:.45;
+}
+.menu-filters button.active{
+  color:var(--wow-wine)!important;
+  font-weight:900!important;
+}
+.menu-filters button.active:after{
+  left:0;
+  right:0;
+  opacity:1;
+}
+@media(max-width:700px){
+  .menu-filters{gap:18px!important;row-gap:12px!important}
+  .menu-filters button{font-size:14px!important}
+}
