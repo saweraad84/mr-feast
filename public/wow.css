@@ -260,3 +260,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 /* Menu category tab typography */
 .menu-filters button{font-size:17px!important}
 @media(max-width:700px){.menu-filters button{font-size:17px!important}}
+
+
+/* Navbar typography */
+.navlinks{font-size:17px!important}
+.navlinks a{font-size:17px!important}
+@media(max-width:900px){.navlinks{font-size:17px!important}.navlinks a{font-size:17px!important}}
