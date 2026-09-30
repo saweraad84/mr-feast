@@ -223,3 +223,35 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   .menu-filters{gap:18px!important;row-gap:12px!important}
   .menu-filters button{font-size:14px!important}
 }
+
+
+/* Navbar text links — clean, larger, box-free */
+.navlinks{
+  gap:28px!important;
+  font-size:15.5px!important;
+  font-weight:800!important;
+}
+.navlinks a{
+  padding:10px 0!important;
+  min-height:auto!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  color:#f5eee8!important;
+  transform:none!important;
+}
+.navlinks a:hover,.navlinks a.wow-active{
+  background:transparent!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+  color:var(--wow-gold2)!important;
+  transform:none!important;
+}
+.navlinks a[href="#reservations"]:after,.navlinks a[href="#contact"]:after{
+  display:block!important;
+}
+@media(max-width:900px){
+  .navlinks{gap:18px!important;font-size:14px!important}
+}
