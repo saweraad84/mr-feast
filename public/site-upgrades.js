@@ -22,8 +22,11 @@ function injectCheckout(){
   const box=document.querySelector('.cart-summary');if(!box||document.getElementById('checkoutUpgrades'))return;
   const btn=document.getElementById('checkoutBtn');
   const wrap=document.createElement('div');wrap.id='checkoutUpgrades';wrap.className='checkout-upgrades';
-  wrap.innerHTML='<div class="fulfilment-row"><label><input type="radio" name="fulfilment" value="pickup" checked> Pickup</label><label><input type="radio" name="fulfilment" value="delivery"> Delivery</label></div><label id="deliveryAddressLabel" style="display:none">Delivery address<input id="deliveryAddress" autocomplete="street-address" placeholder="House / street / area"></label><label>Payment method<select id="paymentMethod"></select></label><div class="checkout-facts"><div><span>Minimum order</span><strong id="checkoutMinimum">—</strong></div><div><span>Delivery charge</span><strong id="checkoutDeliveryCharge">—</strong></div><div><span>Estimated time</span><strong id="checkoutEta">—</strong></div><div><span>Payable total</span><strong id="checkoutPayable">—</strong></div></div>';
+  wrap.innerHTML='<div class="checkout-selected-items" id="checkoutSelectedItems"><div class="checkout-selected-title">Selected items</div></div><div class="fulfilment-row"><label><input type="radio" name="fulfilment" value="pickup" checked> Pickup</label><label><input type="radio" name="fulfilment" value="delivery"> Delivery</label></div><label id="deliveryAddressLabel" style="display:none">Delivery address<input id="deliveryAddress" autocomplete="street-address" placeholder="House / street / area"></label><label>Payment method<select id="paymentMethod"></select></label><div class="checkout-facts"><div><span>Minimum order</span><strong id="checkoutMinimum">—</strong></div><div><span>Delivery charge</span><strong id="checkoutDeliveryCharge">—</strong></div><div><span>Estimated time</span><strong id="checkoutEta">—</strong></div><div><span>Payable total</span><strong id="checkoutPayable">—</strong></div></div>';
   box.insertBefore(wrap,btn);
+  const selected=document.getElementById('checkoutSelectedItems'),items=document.getElementById('cartItems'),empty=document.getElementById('cartEmpty');
+  if(selected&&items)selected.appendChild(items);
+  if(selected&&empty)selected.appendChild(empty);
   document.querySelectorAll('input[name="fulfilment"]').forEach(x=>x.addEventListener('change',updateCheckoutFacts));
 }
 function cartSubtotal(){return typeof cart!=='undefined'?[...cart.values()].reduce((s,x)=>s+Number(x.price)*Number(x.qty),0):0}
