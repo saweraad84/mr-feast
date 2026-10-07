@@ -327,3 +327,42 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   .cart-summary label{margin:7px 0!important}
   .cart-summary input,.cart-summary textarea{padding:8px 10px!important}
 }
+
+
+/* Keep selected cart items inside the checkout card */
+.checkout-selected-items{
+  margin:0 0 14px;
+  padding:0 0 14px;
+  border-bottom:1px solid rgba(107,31,43,.12);
+}
+.checkout-selected-title{
+  margin:0 0 8px;
+  color:#6B1F2B;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.8px;
+  text-transform:uppercase;
+}
+.checkout-selected-items .cart-items{
+  max-height:220px!important;
+  padding:0!important;
+  margin:0!important;
+  background:transparent!important;
+  overflow-y:auto!important;
+  flex:none!important;
+}
+.checkout-selected-items .cart-empty{
+  padding:10px 0 2px!important;
+  margin:0!important;
+  color:#756960;
+  background:transparent!important;
+}
+.checkout-selected-items .cart-line{
+  padding:12px 0!important;
+}
+.checkout-selected-items .cart-line:first-child{
+  padding-top:4px!important;
+}
+@media(max-width:700px){
+  .checkout-selected-items .cart-items{max-height:180px!important}
+}
