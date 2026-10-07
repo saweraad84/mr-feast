@@ -266,3 +266,64 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .navlinks{font-size:17px!important}
 .navlinks a{font-size:17px!important}
 @media(max-width:900px){.navlinks{font-size:17px!important}.navlinks a{font-size:17px!important}}
+
+
+/* Responsive cart drawer — screen-fit with internal scrolling */
+.cart-drawer{
+  width:min(640px,72vw)!important;
+  max-width:100vw!important;
+  height:100vh!important;
+  height:100dvh!important;
+  max-height:100dvh!important;
+  overflow:hidden!important;
+}
+.cart-head{flex:0 0 auto}
+.cart-items{
+  flex:0 1 auto!important;
+  min-height:0!important;
+  max-height:32vh!important;
+  max-height:32dvh!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+}
+.cart-empty{flex:0 0 auto}
+.cart-summary{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+  padding-bottom:28px!important;
+}
+.cart-summary::-webkit-scrollbar,.cart-items::-webkit-scrollbar{width:8px}
+.cart-summary::-webkit-scrollbar-thumb,.cart-items::-webkit-scrollbar-thumb{
+  background:rgba(107,31,43,.28);border-radius:999px
+}
+.cart-summary::-webkit-scrollbar-track,.cart-items::-webkit-scrollbar-track{background:transparent}
+.cart-summary .checkout-btn{
+  position:sticky;
+  bottom:10px;
+  z-index:4;
+  margin-top:12px;
+}
+@media(max-width:900px){
+  .cart-drawer{width:min(620px,86vw)!important}
+}
+@media(max-width:700px){
+  .cart-drawer{
+    width:100vw!important;
+    max-width:100vw!important;
+    padding-bottom:calc(62px + env(safe-area-inset-bottom))!important;
+  }
+  .cart-items{max-height:26dvh!important}
+  .cart-summary{padding:18px 16px 28px!important}
+}
+@media(max-height:720px) and (min-width:701px){
+  .cart-head{padding:18px 22px!important}
+  .cart-head h3{font-size:25px}
+  .cart-items{max-height:22dvh!important}
+  .cart-summary{padding:16px 20px 24px!important}
+  .cart-summary label{margin:7px 0!important}
+  .cart-summary input,.cart-summary textarea{padding:8px 10px!important}
+}
